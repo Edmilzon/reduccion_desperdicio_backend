@@ -70,7 +70,7 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.usersService.findWithPasswordByEmail(email);
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Credenciales inválidas');
@@ -86,6 +86,12 @@ export class AuthService {
         role: user.role,
       },
       access_token: await this.jwtService.signAsync(payload),
+    };
+  }
+
+  async logout() {
+    return {
+      message: 'Sesión cerrada exitosamente. Asegúrese de eliminar el token en el cliente.',
     };
   }
 }
