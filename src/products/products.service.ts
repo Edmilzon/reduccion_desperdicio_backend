@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
@@ -20,7 +24,9 @@ export class ProductsService {
     // Verificar que el comercio exista y que el usuario sea el dueño
     const commerce = await this.commercesService.findOne(commerceId);
     if (commerce.owner.id !== user.id) {
-      throw new ForbiddenException('No tienes permiso para añadir productos a este comercio');
+      throw new ForbiddenException(
+        'No tienes permiso para añadir productos a este comercio',
+      );
     }
 
     const product = this.productRepository.create({
@@ -36,6 +42,28 @@ export class ProductsService {
       where: { isActive: true },
       relations: ['commerce'],
     });
+  }
+
+  async findByCommerce(commerceId: string, status = 'active') {
+    const where: Record<string, unknown> = { commerce: { id: commerceId } };
+    if (status === 'active') where.isActive = true;
+    if (status === 'expired') where.isActive = false;
+
+    const products = await this.productRepository.find({
+      where,
+      relations: ['commerce'],
+      order: { createdAt: 'DESC' },
+    });
+
+    const now = new Date();
+    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+
+    return products.map((product) => ({
+      ...product,
+      isNearExpiry: product.expiryDate
+        ? product.expiryDate <= twoHoursFromNow && product.expiryDate > now
+        : false,
+    }));
   }
 
   async findOne(id: string) {
@@ -54,7 +82,9 @@ export class ProductsService {
 
     // Verificar que el usuario sea el dueño del comercio al que pertenece el producto
     if (product.commerce.owner.id !== user.id) {
-      throw new ForbiddenException('No tienes permiso para editar este producto');
+      throw new ForbiddenException(
+        'No tienes permiso para editar este producto',
+      );
     }
 
     Object.assign(product, updateProductDto);
@@ -64,7 +94,9 @@ export class ProductsService {
   async remove(id: string, user: User) {
     const product = await this.findOne(id);
     if (product.commerce.owner.id !== user.id) {
-      throw new ForbiddenException('No tienes permiso para eliminar este producto');
+      throw new ForbiddenException(
+        'No tienes permiso para eliminar este producto',
+      );
     }
     product.isActive = false;
     return this.productRepository.save(product);
