@@ -1,7 +1,6 @@
 # ============================================
 # PRODUCTS - Productos con Categorías
 # ============================================
-# Este módulo maneja la gestión de productos.
 # Los productos pertenecen a un comercio específico y pueden tener categoría.
 # Base URL: http://localhost:3000
 
@@ -13,47 +12,39 @@
 @categorySlug = panaderia
 
 # ============================================
-# CATEGORÍAS
+# GET - CONSULTAS (todas primero)
 # ============================================
 
-###
+# --- Categorías ---
+
 # Listar todas las categorías
 GET {{baseURL}}/products/categories
 
-###
 # Obtener categoría por ID
 GET {{baseURL}}/products/categories/{{categoryId}}
 
-###
 # Obtener categoría por slug
 GET {{baseURL}}/products/categories/slug/{{categorySlug}}
 
-###
 # Obtener productos por categoría
-GET {{baseURL}}/products/category/{{categoryId}}
-
-###
-# Obtener productos por categoría filtrados por comercio
 GET {{baseURL}}/products/category/{{categoryId}}?commerceId={{commerceId}}
 
+# --- Productos ---
+
+# Listar todos los productos (filtros: categoryId, commerceId)
+GET {{baseURL}}/products?categoryId={{categoryId}}&commerceId={{commerceId}}
+
+# Obtener productos por comercio (filtros: status, categoryId)
+GET {{baseURL}}/products/commerce/{{commerceId}}?status=active&categoryId={{categoryId}}
+
+# Obtener producto por ID
+GET {{baseURL}}/products/{{productId}}
+
 # ============================================
-# PRODUCTOS
+# POST - CREAR
 # ============================================
 
-###
-# Listar todos los productos
-GET {{baseURL}}/products
-
-###
-# Listar productos filtrados por categoría
-GET {{baseURL}}/products?categoryId={{categoryId}}
-
-###
-# Listar productos filtrados por comercio
-GET {{baseURL}}/products?commerceId={{commerceId}}
-
-###
-# Crear producto con categoría (requiere autenticación)
+# Crear producto (requiere autenticación)
 POST {{baseURL}}/products
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -69,23 +60,10 @@ Content-Type: application/json
   "categoryId": "uuid-de-categoria"
 }
 
-###
-# Obtener productos por comercio
-GET {{baseURL}}/products/commerce/{{commerceId}}
+# ============================================
+# PATCH - ACTUALIZAR
+# ============================================
 
-###
-# Obtener productos por comercio con filtro de estado
-GET {{baseURL}}/products/commerce/{{commerceId}}?status=active
-
-###
-# Obtener productos por comercio filtrados por categoría
-GET {{baseURL}}/products/commerce/{{commerceId}}?categoryId={{categoryId}}
-
-###
-# Obtener producto por ID
-GET {{baseURL}}/products/{{productId}}
-
-###
 # Actualizar producto (requiere autenticación)
 PATCH {{baseURL}}/products/{{productId}}
 Authorization: Bearer {{token}}
@@ -101,7 +79,10 @@ Content-Type: application/json
   "categoryId": "uuid-nueva-categoria"
 }
 
-###
-# Eliminar producto (requiere autenticación)
+# ============================================
+# DELETE - ELIMINAR
+# ============================================
+
+# Eliminar producto (soft delete, requiere autenticación)
 DELETE {{baseURL}}/products/{{productId}}
 Authorization: Bearer {{token}}
