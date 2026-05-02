@@ -1,52 +1,59 @@
 # ============================================
-# PRODUCTS - Productos
+# PRODUCTS - Productos con Categorías
 # ============================================
 # Este módulo maneja la gestión de productos.
-# Los productos pertencen a un comercio específico.
+# Los productos pertenecen a un comercio específico y pueden tener categoría.
 # Base URL: http://localhost:3000
 
 @baseURL = http://localhost:3000
 @token = your_jwt_token_here
 @commerceId = uuid-del-comercio
 @productId = uuid-del-producto
+@categoryId = uuid-de-categoria
+@categorySlug = panaderia
 
 # ============================================
-# POST /products
-# ----------------------------------
-# Descripción: Crea un nuevo producto para un comercio.
-# Autenticación: REQUERIDA - Bearer token.
-# Body (JSON):
-#   {
-#     "name": "Pan Integral",      // OBLIGATORIO - Nombre del producto
-#     "description": "Pan fresco",   // OPCIONAL
-#     "originalPrice": 5.00,    // OBLIGATORIO - Precio original
-#     "price": 3.50,          // OBLIGATORIO - Precio de oferta
-#     "quantity": 20,          // OBLIGATORIO - Cantidad disponible
-#     "expiryDate": "2024-12-31", // OPCIONAL - Fecha vencimiento
-#     "commerceId": "uuid"     // OBLIGATORIO - ID del comercio
-#   }
-# Headers:
-#   Authorization: Bearer <token>
-# Respuesta exitosa (201):
-#   {
-#     "id": "uuid-generated",
-#     "name": "Pan Integral",
-#     "description": "Pan fresco",
-#     "originalPrice": 5.00,
-#     "price": 3.50,
-#     "quantity": 20,
-#     "expiryDate": "2024-12-31",
-#     "commerceId": "uuid",
-#     "status": "available",
-#     "createdAt": "..."
-#   }
-# Errores comunes:
-#   - 401 Unauthorized: Sin token
-#   - 400 Bad Request: Datos inválidos
-#   - 404 Not Found: Comercio no existe
+# CATEGORÍAS
+# ============================================
 
 ###
-# Crear producto (requiere autenticación)
+# Listar todas las categorías
+GET {{baseURL}}/products/categories
+
+###
+# Obtener categoría por ID
+GET {{baseURL}}/products/categories/{{categoryId}}
+
+###
+# Obtener categoría por slug
+GET {{baseURL}}/products/categories/slug/{{categorySlug}}
+
+###
+# Obtener productos por categoría
+GET {{baseURL}}/products/category/{{categoryId}}
+
+###
+# Obtener productos por categoría filtrados por comercio
+GET {{baseURL}}/products/category/{{categoryId}}?commerceId={{commerceId}}
+
+# ============================================
+# PRODUCTOS
+# ============================================
+
+###
+# Listar todos los productos
+GET {{baseURL}}/products
+
+###
+# Listar productos filtrados por categoría
+GET {{baseURL}}/products?categoryId={{categoryId}}
+
+###
+# Listar productos filtrados por comercio
+GET {{baseURL}}/products?commerceId={{commerceId}}
+
+###
+# Crear producto con categoría (requiere autenticación)
 POST {{baseURL}}/products
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -58,62 +65,9 @@ Content-Type: application/json
   "price": 3.50,
   "quantity": 20,
   "expiryDate": "2024-12-31",
-  "commerceId": "uuid-del-comercio"
+  "commerceId": "uuid-del-comercio",
+  "categoryId": "uuid-de-categoria"
 }
-
-# ============================================
-# GET /products
-# ----------------------------------
-# Descripción: Lista todos los productos del sistema.
-# Autenticación: No requerida (pública).
-# Respuesta exitosa (200):
-#   [
-#     { "id": "...", "name": "Producto 1", ... },
-#     { "id": "...", "name": "Producto 2", ... }
-#   ]
-
-###
-# Listar todos los productos
-GET {{baseURL}}/products
-
-# ============================================
-# GET /products/:id
-# ----------------------------------
-# Descripción: Obtiene un producto específico por su ID.
-# Autenticación: No requerida (pública).
-# Params:
-#   :id - UUID del producto (reemplaza {{productId}})
-# Respuesta exitosa (200):
-#   {
-#     "id": "uuid-generated",
-#     "name": "Pan Integral",
-#     "originalPrice": 5.00,
-#     "price": 3.50,
-#     "quantity": 20,
-#     "status": "available"
-#   }
-# Errores comunes:
-#   - 404 Not Found: Producto no existe
-
-###
-# Obtener producto por ID
-GET {{baseURL}}/products/{{productId}}
-
-# ============================================
-# GET /products/commerce/:commerceId
-# ----------------------------------
-# Descripción: Lista productos de un comercio específico.
-#              Debe ir ANTES de GET /:id para evitar conflicto de rutas.
-# Autenticación: No requerida (pública).
-# Params:
-#   :commerceId - UUID del comercio
-# Query params (opcional):
-#   status=available  - Filtra solo productos disponibles
-# Respuesta exitosa (200):
-#   [
-#     { "id": "...", "name": "Producto 1", "status": "available" },
-#     { "id": "...", "name": "Producto 2", "status": "sold-out" }
-#   ]
 
 ###
 # Obtener productos por comercio
@@ -121,30 +75,15 @@ GET {{baseURL}}/products/commerce/{{commerceId}}
 
 ###
 # Obtener productos por comercio con filtro de estado
-GET {{baseURL}}/products/commerce/{{commerceId}}?status=available
+GET {{baseURL}}/products/commerce/{{commerceId}}?status=active
 
-# ============================================
-# PATCH /products/:id
-# ----------------------------------
-# Descripción: Actualiza los datos de un producto.
-# Autenticación: REQUERIDA - Bearer token.
-#              El usuario debe ser owner del comercio.
-# Body (JSON) - Solo incluye campos a actualizar:
-#   {
-#     "name": "Nuevo Nombre",    // OPCIONAL
-#     "description": "Nueva desc", // OPCIONAL
-#     "originalPrice": 6.00,  // OPCIONAL
-#     "price": 4.00,        // OPCIONAL
-#     "quantity": 15,        // OPCIONAL
-#     "expiryDate": "2025-01-15" // OPCIONAL
-#   }
-# Params:
-#   :id - UUID del producto
-# Respuesta exitosa (200):
-#   { "id": "...", "updatedAt": "..." }
-# Errores comunes:
-#   - 401 Unauthorized: Sin token
-#   - 403 Forbidden: No eres owner del comercio
+###
+# Obtener productos por comercio filtrados por categoría
+GET {{baseURL}}/products/commerce/{{commerceId}}?categoryId={{categoryId}}
+
+###
+# Obtener producto por ID
+GET {{baseURL}}/products/{{productId}}
 
 ###
 # Actualizar producto (requiere autenticación)
@@ -158,22 +97,9 @@ Content-Type: application/json
   "originalPrice": 6.00,
   "price": 4.00,
   "quantity": 15,
-  "expiryDate": "2025-01-15"
+  "expiryDate": "2025-01-15",
+  "categoryId": "uuid-nueva-categoria"
 }
-
-# ============================================
-# DELETE /products/:id
-# ----------------------------------
-# Descripción: Elimina un producto.
-# Autenticación: REQUERIDA - Bearer token.
-#              El usuario debe ser owner del comercio.
-# Params:
-#   :id - UUID del producto
-# Respuesta exitosa (200):
-#   { "message": "Producto eliminado" }
-# Errores comunes:
-#   - 401 Unauthorized: Sin token
-#   - 403 Forbidden: No eres owner
 
 ###
 # Eliminar producto (requiere autenticación)

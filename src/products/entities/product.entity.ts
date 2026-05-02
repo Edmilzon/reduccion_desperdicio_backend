@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
 import { Commerce } from '../../commerces/entities/commerce.entity';
+import { Category } from './category.entity';
 
 @Entity()
 export class Product {
@@ -16,7 +17,7 @@ export class Product {
   originalPrice: number;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  price: number; // Precio de oferta (desperdicio reducido)
+  price: number;
 
   @Column('int')
   quantity: number;
@@ -27,8 +28,11 @@ export class Product {
   @Column({ default: true })
   isActive: boolean;
 
-  @ManyToOne(() => Commerce, (commerce) => commerce.id)
+  @ManyToOne(() => Commerce, (commerce) => commerce.products)
   commerce: Commerce;
+
+  @ManyToOne(() => Category, (category) => category.products, { nullable: true })
+  category: Category;
 
   @CreateDateColumn()
   createdAt: Date;

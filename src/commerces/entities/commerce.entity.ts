@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Product } from '../../products/entities/product.entity';
 
 @Entity()
 export class Commerce {
@@ -23,6 +24,9 @@ export class Commerce {
 
   @ManyToOne(() => User, (user) => user.commerces)
   owner: User;
+
+  @OneToMany(() => Product, (product) => product.commerce)
+  products: Product[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -33,17 +33,43 @@ export class ProductsController {
   }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  findAll(
+    @Query('categoryId') categoryId?: string,
+    @Query('commerceId') commerceId?: string,
+  ) {
+    return this.productsService.findAll(categoryId, commerceId);
   }
 
-  // Debe ir antes de :id para evitar conflicto de rutas
+  @Get('categories')
+  findAllCategories() {
+    return this.productsService.findAllCategories();
+  }
+
+  @Get('categories/:id')
+  findCategoryById(@Param('id') id: string) {
+    return this.productsService.findCategoryById(id);
+  }
+
+  @Get('categories/slug/:slug')
+  findCategoryBySlug(@Param('slug') slug: string) {
+    return this.productsService.findCategoryBySlug(slug);
+  }
+
+  @Get('category/:categoryId')
+  findProductsByCategory(
+    @Param('categoryId') categoryId: string,
+    @Query('commerceId') commerceId?: string,
+  ) {
+    return this.productsService.findProductsByCategory(categoryId, commerceId);
+  }
+
   @Get('commerce/:commerceId')
   findByCommerce(
     @Param('commerceId') commerceId: string,
     @Query('status') status?: string,
+    @Query('categoryId') categoryId?: string,
   ) {
-    return this.productsService.findByCommerce(commerceId, status);
+    return this.productsService.findByCommerce(commerceId, status, categoryId);
   }
 
   @Get(':id')

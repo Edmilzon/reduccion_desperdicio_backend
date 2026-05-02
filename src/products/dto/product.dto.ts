@@ -28,6 +28,10 @@ export class CreateProductDto {
   @IsUUID('all', { message: 'ID de comercio inválido' })
   @IsNotEmpty({ message: 'El ID del comercio es obligatorio' })
   commerceId: string;
+
+  @IsUUID('all', { message: 'ID de categoría inválido' })
+  @IsOptional()
+  categoryId?: string;
 }
 
 export class UpdateProductDto {
@@ -57,4 +61,8 @@ export class UpdateProductDto {
   @IsDateString()
   @IsOptional()
   expiryDate?: string;
+
+  @IsUUID('all')
+  @IsOptional()
+  categoryId?: string;
 }
