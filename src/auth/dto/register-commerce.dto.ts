@@ -1,7 +1,13 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsPhoneNumber } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  IsOptional,
+  IsNumber,
+} from 'class-validator';
 
 export class RegisterCommerceDto {
-  // Datos del Usuario (Dueño)
   @IsString()
   @IsNotEmpty({ message: 'El nombre del dueño es obligatorio' })
   ownerName: string;
@@ -13,20 +19,23 @@ export class RegisterCommerceDto {
   @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
   password: string;
 
-  // Datos del Comercio
   @IsString()
-  @IsNotEmpty({ message: 'El nombre del comercio es obligatorio' })
+  @IsNotEmpty({ message: 'El nombre del restaurante es obligatorio' })
   commerceName: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'La dirección es obligatoria' })
-  address: string;
-
-  @IsString()
-  @IsOptional()
-  phone?: string;
 
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsNumber({}, { message: 'Latitud inválida' })
+  @IsOptional()
+  latitude?: number;
+
+  @IsNumber({}, { message: 'Longitud inválida' })
+  @IsOptional()
+  longitude?: number;
+
+  @IsString()
+  @IsOptional()
+  nit?: string;
 }

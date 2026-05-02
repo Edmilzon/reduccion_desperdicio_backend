@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -12,7 +16,9 @@ export class UsersService {
 
   async create(userData: Partial<User>): Promise<User> {
     if (!userData.email) {
-      throw new ConflictException('El email es requerido para crear un usuario');
+      throw new ConflictException(
+        'El email es requerido para crear un usuario',
+      );
     }
     const existingUser = await this.findByEmail(userData.email);
     if (existingUser) {
@@ -30,11 +36,11 @@ export class UsersService {
   async findWithPasswordByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'name', 'password', 'role'],
+      select: ['id', 'email', 'password', 'role'],
     });
   }
 
-  async findById(id: string): Promise<User> {
+  async findById(id: number): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');

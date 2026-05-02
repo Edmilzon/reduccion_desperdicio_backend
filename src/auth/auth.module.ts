@@ -21,12 +21,11 @@ import { CommercesModule } from '../commerces/commerces.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET') || 'default-secret',
         signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRATION') || '24h') as any,
+          expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
+            '24h') as any,
         },
       }),
     }),
-
-
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

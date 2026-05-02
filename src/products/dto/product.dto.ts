@@ -1,9 +1,16 @@
-import { IsNotEmpty, IsString, IsOptional, IsNumber, IsDateString, IsUUID, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsDateString,
+  Min,
+} from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
-  @IsNotEmpty({ message: 'El nombre del producto es obligatorio' })
-  name: string;
+  @IsNotEmpty({ message: 'El título del producto es obligatorio' })
+  title: string;
 
   @IsString()
   @IsOptional()
@@ -13,7 +20,7 @@ export class CreateProductDto {
   @Min(0)
   originalPrice: number;
 
-  @IsNumber({}, { message: 'El precio de oferta debe ser un número' })
+  @IsNumber({}, { message: 'El precio de descuento debe ser un número' })
   @Min(0)
   price: number;
 
@@ -21,23 +28,31 @@ export class CreateProductDto {
   @Min(1)
   quantity: number;
 
-  @IsDateString({}, { message: 'Fecha de vencimiento inválida' })
+  @IsString()
   @IsOptional()
-  expiryDate?: string;
+  imageUrl?: string;
 
-  @IsUUID('all', { message: 'ID de comercio inválido' })
+  @IsDateString({}, { message: 'Fecha de inicio de recogida inválida' })
+  @IsNotEmpty({ message: 'La fecha de inicio de recogida es obligatoria' })
+  pickupStart: string;
+
+  @IsDateString({}, { message: 'Fecha de fin de recogida inválida' })
+  @IsNotEmpty({ message: 'La fecha de fin de recogida es obligatoria' })
+  pickupEnd: string;
+
+  @IsNumber({}, { message: 'ID de comercio inválido' })
   @IsNotEmpty({ message: 'El ID del comercio es obligatorio' })
-  commerceId: string;
+  commerceId: number;
 
-  @IsUUID('all', { message: 'ID de categoría inválido' })
+  @IsNumber({}, { message: 'ID de categoría inválido' })
   @IsOptional()
-  categoryId?: string;
+  categoryId?: number;
 }
 
 export class UpdateProductDto {
   @IsString()
   @IsOptional()
-  name?: string;
+  title?: string;
 
   @IsString()
   @IsOptional()
@@ -58,11 +73,19 @@ export class UpdateProductDto {
   @Min(1)
   quantity?: number;
 
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
   @IsDateString()
   @IsOptional()
-  expiryDate?: string;
+  pickupStart?: string;
 
-  @IsUUID('all')
+  @IsDateString()
   @IsOptional()
-  categoryId?: string;
+  pickupEnd?: string;
+
+  @IsNumber()
+  @IsOptional()
+  categoryId?: number;
 }

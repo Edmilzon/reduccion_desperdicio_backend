@@ -8,10 +8,10 @@ import {
 } from 'typeorm';
 import { Product } from './product.entity';
 
-@Entity()
+@Entity('categories')
 export class Category {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('increment', { name: 'category_id' })
+  id: number;
 
   @Column()
   name: string;
@@ -22,9 +22,9 @@ export class Category {
   @OneToMany(() => Product, (product) => product.category)
   products: Product[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

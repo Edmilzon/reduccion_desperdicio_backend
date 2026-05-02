@@ -37,7 +37,10 @@ export class ProductsController {
     @Query('categoryId') categoryId?: string,
     @Query('commerceId') commerceId?: string,
   ) {
-    return this.productsService.findAll(categoryId, commerceId);
+    return this.productsService.findAll(
+      categoryId ? +categoryId : undefined,
+      commerceId ? +commerceId : undefined,
+    );
   }
 
   @Get('categories')
@@ -47,7 +50,7 @@ export class ProductsController {
 
   @Get('categories/:id')
   findCategoryById(@Param('id') id: string) {
-    return this.productsService.findCategoryById(id);
+    return this.productsService.findCategoryById(+id);
   }
 
   @Get('categories/slug/:slug')
@@ -55,12 +58,20 @@ export class ProductsController {
     return this.productsService.findCategoryBySlug(slug);
   }
 
+  @Get('all')
+  findAllWithCategory() {
+    return this.productsService.findAllWithCategory();
+  }
+
   @Get('category/:categoryId')
   findProductsByCategory(
     @Param('categoryId') categoryId: string,
     @Query('commerceId') commerceId?: string,
   ) {
-    return this.productsService.findProductsByCategory(categoryId, commerceId);
+    return this.productsService.findProductsByCategory(
+      +categoryId,
+      commerceId ? +commerceId : undefined,
+    );
   }
 
   @Get('commerce/:commerceId')
@@ -69,12 +80,16 @@ export class ProductsController {
     @Query('status') status?: string,
     @Query('categoryId') categoryId?: string,
   ) {
-    return this.productsService.findByCommerce(commerceId, status, categoryId);
+    return this.productsService.findByCommerce(
+      +commerceId,
+      status as any,
+      categoryId ? +categoryId : undefined,
+    );
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.productsService.findOne(id);
+    return this.productsService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -84,12 +99,12 @@ export class ProductsController {
     @Body() updateProductDto: UpdateProductDto,
     @Request() req: AuthRequest,
   ) {
-    return this.productsService.update(id, updateProductDto, req.user);
+    return this.productsService.update(+id, updateProductDto, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req: AuthRequest) {
-    return this.productsService.remove(id, req.user);
+    return this.productsService.remove(+id, req.user);
   }
 }

@@ -1,21 +1,31 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { Commerce } from '../../commerces/entities/commerce.entity';
+import { Profile } from './profile.entity';
+import { Review } from './review.entity';
+import { Notification } from './notification.entity';
+
+export { Profile } from './profile.entity';
 
 export enum UserRole {
-  USER = 'USER',
-  OWNER = 'OWNER',
-  ADMIN = 'ADMIN',
+  CLIENT = 'client',
+  MERCHANT = 'merchant',
+  ADMIN = 'admin',
 }
 
-@Entity()
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('increment', { name: 'user_id' })
+  id: number;
 
-  @Column()
-  name: string;
-
-  @Column({ unique: true })
+  @Column({ name: 'email', unique: true })
   email: string;
 
   @Column({ select: false })
@@ -24,16 +34,28 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.USER,
+    default: UserRole.CLIENT,
   })
   role: UserRole;
 
-  @OneToMany(() => Commerce, (commerce) => commerce.owner)
-  commerces: Commerce[];
+  @Column({ name: 'reset_token', nullable: true })
+  resetToken: string;
 
-  @CreateDateColumn()
+  @OneToMany(() => Commerce, (commerce) => commerce.owner)
+  comercios: Commerce[];
+
+  @OneToOne(() => Profile, (profile) => profile.user)
+  profile: Profile;
+
+  @OneToMany(() => Review, (review) => review.client)
+  reviews: Review[];
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
+
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

@@ -1,11 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Product } from '../../products/entities/product.entity';
+import { Location } from './location.entity';
+import { Review } from '../../users/entities/review.entity';
 
-@Entity()
+@Entity('restaurants')
 export class Commerce {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('increment', { name: 'restaurant_id' })
+  id: number;
+
+  @ManyToOne(() => User, (user) => user.comercios, { onDelete: 'CASCADE' })
+  owner: User;
 
   @Column()
   name: string;
@@ -13,24 +26,33 @@ export class Commerce {
   @Column({ nullable: true })
   description: string;
 
-  @Column()
-  address: string;
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  latitude: number;
+
+  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  longitude: number;
+
+  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true })
+  rating: number;
+
+  @Column({ name: 'image_url', nullable: true })
+  imageUrl: string;
 
   @Column({ nullable: true })
-  phone: string;
-
-  @Column({ default: true })
-  isActive: boolean;
-
-  @ManyToOne(() => User, (user) => user.commerces)
-  owner: User;
+  nit: string;
 
   @OneToMany(() => Product, (product) => product.commerce)
   products: Product[];
 
-  @CreateDateColumn()
+  @OneToMany(() => Location, (location) => location.commerce)
+  locations: Location[];
+
+  @OneToMany(() => Review, (review) => review.commerce)
+  reviews: Review[];
+
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

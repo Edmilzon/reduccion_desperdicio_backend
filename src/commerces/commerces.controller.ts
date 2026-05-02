@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { CommercesService } from './commerces.service';
 import { CreateCommerceDto, UpdateCommerceDto } from './dto/commerce.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,7 +30,7 @@ export class CommercesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.commercesService.findOne(id);
+    return this.commercesService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -30,12 +40,12 @@ export class CommercesController {
     @Body() updateCommerceDto: UpdateCommerceDto,
     @Request() req,
   ) {
-    return this.commercesService.update(id, updateCommerceDto, req.user);
+    return this.commercesService.update(+id, updateCommerceDto, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {
-    return this.commercesService.remove(id, req.user);
+    return this.commercesService.remove(+id, req.user);
   }
 }

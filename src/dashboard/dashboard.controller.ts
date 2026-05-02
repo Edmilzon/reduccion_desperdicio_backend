@@ -17,6 +17,6 @@ export class DashboardController {
     @Param('commerceId') commerceId: string,
     @Request() req: AuthRequest,
   ) {
-    return this.dashboardService.getCommerceStats(commerceId, req.user);
+    return this.dashboardService.getCommerceStats(+commerceId, req.user);
   }
 }

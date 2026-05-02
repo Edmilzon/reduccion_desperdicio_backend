@@ -2,41 +2,46 @@
 -- CREACIÓN DE TABLAS PARA EL MODELO ER DE EXCEDENTES
 -- ======================================================
 
--- 1. Tabla de Usuarios (renombrada a 'users' para evitar palabra reservada)
+-- 1. Tabla de Usuarios
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL CHECK (role IN ('client', 'merchant', 'admin')),
     reset_token VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 2. Tabla de Categorías
 CREATE TABLE categories (
     category_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    slug VARCHAR(100) UNIQUE NOT NULL
+    slug VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 3. Tabla de Restaurantes
 CREATE TABLE restaurants (
     restaurant_id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    "ownerId" INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     latitude DECIMAL(10,8),
     longitude DECIMAL(11,8),
     rating DECIMAL(3,2) CHECK (rating >= 0 AND rating <= 5),
     image_url VARCHAR(255),
-    nit VARCHAR(50) UNIQUE
+    nit VARCHAR(50) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 4. Tabla de Productos Excedentes
 CREATE TABLE product_excedente (
     product_excedente_id SERIAL PRIMARY KEY,
-    restaurant_id INT NOT NULL REFERENCES restaurants(restaurant_id) ON DELETE CASCADE,
-    category_id INT NOT NULL REFERENCES categories(category_id) ON DELETE RESTRICT,
+    "commerceId" INT NOT NULL REFERENCES restaurants(restaurant_id) ON DELETE CASCADE,
+    "categoryId" INT NOT NULL REFERENCES categories(category_id) ON DELETE RESTRICT,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     original_price DECIMAL(10,2) NOT NULL CHECK (original_price >= 0),
@@ -46,31 +51,36 @@ CREATE TABLE product_excedente (
     pickup_start TIMESTAMP NOT NULL,
     pickup_end TIMESTAMP NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'sold_out', 'expired')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CHECK (pickup_end > pickup_start)
 );
 
 -- 5. Tabla de Ubicaciones (puntos de recogida)
 CREATE TABLE locations (
     location_id SERIAL PRIMARY KEY,
-    restaurant_id INT NOT NULL REFERENCES restaurants(restaurant_id) ON DELETE CASCADE,
+    "restaurant_id" INT NOT NULL REFERENCES restaurants(restaurant_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     latitude DECIMAL(10,8) NOT NULL,
     longitude DECIMAL(11,8) NOT NULL,
     description TEXT,
-    phone VARCHAR(20)
+    phone VARCHAR(20),
+    "commerceId" INT REFERENCES restaurants(restaurant_id) ON DELETE CASCADE
 );
 
 -- 6. Tabla de Pedidos
 CREATE TABLE orders (
     order_id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE RESTRICT,
-    product_id INT NOT NULL REFERENCES product_excedente(product_excedente_id) ON DELETE RESTRICT,
     quantity INT NOT NULL CHECK (quantity > 0),
     payment_method VARCHAR(20) NOT NULL CHECK (payment_method IN ('cash', 'online')),
     payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'rejected')),
     delivery_status VARCHAR(30) DEFAULT 'pending' CHECK (delivery_status IN ('pending', 'delivered', 'qr_code_validation')),
     total_price DECIMAL(10,2) NOT NULL CHECK (total_price >= 0),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    status VARCHAR(20) DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'cancelled')),
+    "buyerId" INT NOT NULL REFERENCES users(user_id) ON DELETE RESTRICT,
+    "productId" INT NOT NULL REFERENCES product_excedente(product_excedente_id) ON DELETE RESTRICT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 7. Tabla de Reseñas
@@ -107,12 +117,13 @@ CREATE TABLE notifications (
 -- ======================================================
 -- ÍNDICES RECOMENDADOS PARA MEJORAR EL RENDIMIENTO
 -- ======================================================
-CREATE INDEX idx_restaurants_user_id ON restaurants(user_id);
-CREATE INDEX idx_product_excedente_restaurant_id ON product_excedente(restaurant_id);
-CREATE INDEX idx_product_excedente_category_id ON product_excedente(category_id);
-CREATE INDEX idx_locations_restaurant_id ON locations(restaurant_id);
-CREATE INDEX idx_orders_user_id ON orders(user_id);
-CREATE INDEX idx_orders_product_id ON orders(product_id);
+CREATE INDEX idx_restaurants_ownerId ON restaurants("ownerId");
+CREATE INDEX idx_product_excedente_commerceId ON product_excedente("commerceId");
+CREATE INDEX idx_product_excedente_categoryId ON product_excedente("categoryId");
+CREATE INDEX idx_locations_restaurant_id ON locations("restaurant_id");
+CREATE INDEX idx_locations_commerceId ON locations("commerceId");
+CREATE INDEX idx_orders_buyerId ON orders("buyerId");
+CREATE INDEX idx_orders_productId ON orders("productId");
 CREATE INDEX idx_reviews_order_id ON reviews(order_id);
 CREATE INDEX idx_reviews_client_id ON reviews(client_id);
 CREATE INDEX idx_reviews_restaurant_id ON reviews(restaurant_id);

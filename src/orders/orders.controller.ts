@@ -34,6 +34,6 @@ export class OrdersController {
 
   @Patch(':id/cancel')
   cancelOrder(@Param('id') id: string, @Request() req: AuthRequest) {
-    return this.ordersService.cancelOrder(id, req.user);
+    return this.ordersService.cancelOrder(+id, req.user);
   }
 }

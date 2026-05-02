@@ -1,42 +1,65 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+} from 'typeorm';
 import { Commerce } from '../../commerces/entities/commerce.entity';
 import { Category } from './category.entity';
 
-@Entity()
+export enum ProductStatus {
+  ACTIVE = 'active',
+  SOLD_OUT = 'sold_out',
+  EXPIRED = 'expired',
+}
+
+@Entity('product_excedente')
 export class Product {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('increment', { name: 'product_excedente_id' })
+  id: number;
 
   @Column()
-  name: string;
+  title: string;
 
   @Column({ nullable: true })
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({ name: 'original_price', type: 'decimal', precision: 10, scale: 2 })
   originalPrice: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({ name: 'discount_price', type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
-  @Column('int')
+  @Column()
   quantity: number;
 
-  @Column({ type: 'timestamp', nullable: true })
-  expiryDate: Date;
+  @Column({ name: 'image_url', nullable: true })
+  imageUrl: string;
 
-  @Column({ default: true })
-  isActive: boolean;
+  @Column({ name: 'pickup_start', type: 'timestamp' })
+  pickupStart: Date;
 
-  @ManyToOne(() => Commerce, (commerce) => commerce.products)
+  @Column({ name: 'pickup_end', type: 'timestamp' })
+  pickupEnd: Date;
+
+  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.ACTIVE })
+  status: ProductStatus;
+
+  @ManyToOne(() => Commerce, (commerce) => commerce.products, {
+    onDelete: 'CASCADE',
+  })
   commerce: Commerce;
 
-  @ManyToOne(() => Category, (category) => category.products, { nullable: true })
+  @ManyToOne(() => Category, (category) => category.products, {
+    onDelete: 'RESTRICT',
+  })
   category: Category;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

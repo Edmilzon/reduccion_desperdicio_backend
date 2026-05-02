@@ -1,7 +1,7 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { Product } from '../products/entities/product.entity';
+import { Product, ProductStatus } from '../products/entities/product.entity';
 import { Order } from '../orders/entities/order.entity';
 import { Commerce } from '../commerces/entities/commerce.entity';
 import { User, UserRole } from '../users/entities/user.entity';
@@ -22,7 +22,7 @@ export class DashboardService {
     private readonly commerceRepository: Repository<Commerce>,
   ) {}
 
-  async getCommerceStats(commerceId: string, user: User) {
+  async getCommerceStats(commerceId: number, user: User) {
     const commerce = await this.commerceRepository.findOne({
       where: { id: commerceId },
       relations: ['owner'],
@@ -45,12 +45,10 @@ export class DashboardService {
     endOfDay.setHours(23, 59, 59, 999);
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
-    // Ofertas activas en este momento
     const activeOffers = await this.productRepository.count({
-      where: { commerce: { id: commerceId }, isActive: true },
+      where: { commerce: { id: commerceId }, status: ProductStatus.ACTIVE },
     });
 
-    // Ofertas publicadas hoy
     const todayOffers = await this.productRepository.count({
       where: {
         commerce: { id: commerceId },
@@ -58,7 +56,6 @@ export class DashboardService {
       },
     });
 
-    // Órdenes completadas hoy (platos vendidos)
     const todayOrdersCount = await this.orderRepository
       .createQueryBuilder('order')
       .innerJoin('order.product', 'product')
@@ -70,7 +67,6 @@ export class DashboardService {
       })
       .getCount();
 
-    // Total recaudado hoy
     const salesResult = await this.orderRepository
       .createQueryBuilder('order')
       .innerJoin('order.product', 'product')
@@ -84,16 +80,15 @@ export class DashboardService {
       })
       .getRawOne<SalesRawResult>();
 
-    // Ofertas próximas a vencer (en las próximas 2 horas)
     const nearExpiryOffers = await this.productRepository
       .createQueryBuilder('product')
       .where('product.commerceId = :commerceId', { commerceId })
-      .andWhere('product.isActive = true')
-      .andWhere('product.expiryDate IS NOT NULL')
-      .andWhere('product.expiryDate <= :twoHours', {
+      .andWhere('product.status = :status', { status: ProductStatus.ACTIVE })
+      .andWhere('product.pickupEnd IS NOT NULL')
+      .andWhere('product.pickupEnd <= :twoHours', {
         twoHours: twoHoursFromNow,
       })
-      .andWhere('product.expiryDate > :now', { now })
+      .andWhere('product.pickupEnd > :now', { now })
       .getMany();
 
     return {
@@ -104,9 +99,9 @@ export class DashboardService {
       totalUnitsSold: Number(salesResult?.totalUnitsSold ?? 0),
       nearExpiryOffers: nearExpiryOffers.map((p) => ({
         id: p.id,
-        name: p.name,
+        title: p.title,
         quantity: p.quantity,
-        expiryDate: p.expiryDate,
+        pickupEnd: p.pickupEnd,
         price: p.price,
       })),
       nearExpiryCount: nearExpiryOffers.length,

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Product } from './entities/product.entity';
+import { Product, ProductStatus } from './entities/product.entity';
 import { Category } from './entities/category.entity';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 import { CommercesService } from '../commerces/commerces.service';
@@ -33,7 +33,9 @@ export class ProductsService {
 
     let category: Category | undefined;
     if (categoryId) {
-      category = await this.categoryRepository.findOne({ where: { id: categoryId } });
+      category = await this.categoryRepository.findOne({
+        where: { id: categoryId },
+      });
       if (!category) {
         throw new NotFoundException('Categoría no encontrada');
       }
@@ -48,8 +50,8 @@ export class ProductsService {
     return this.productRepository.save(product);
   }
 
-  async findAll(categoryId?: string, commerceId?: string) {
-    const where: Record<string, unknown> = { isActive: true };
+  async findAll(categoryId?: number, commerceId?: number) {
+    const where: Record<string, unknown> = { status: ProductStatus.ACTIVE };
     if (categoryId) where.category = { id: categoryId };
     if (commerceId) where.commerce = { id: commerceId };
 
@@ -59,10 +61,13 @@ export class ProductsService {
     });
   }
 
-  async findByCommerce(commerceId: string, status = 'active', categoryId?: string) {
+  async findByCommerce(
+    commerceId: number,
+    status = ProductStatus.ACTIVE,
+    categoryId?: number,
+  ) {
     const where: Record<string, unknown> = { commerce: { id: commerceId } };
-    if (status === 'active') where.isActive = true;
-    if (status === 'expired') where.isActive = false;
+    if (status) where.status = status;
     if (categoryId) where.category = { id: categoryId };
 
     const products = await this.productRepository.find({
@@ -76,13 +81,13 @@ export class ProductsService {
 
     return products.map((product) => ({
       ...product,
-      isNearExpiry: product.expiryDate
-        ? product.expiryDate <= twoHoursFromNow && product.expiryDate > now
+      isNearExpiry: product.pickupEnd
+        ? product.pickupEnd <= twoHoursFromNow && product.pickupEnd > now
         : false,
     }));
   }
 
-  async findOne(id: string) {
+  async findOne(id: number) {
     const product = await this.productRepository.findOne({
       where: { id },
       relations: ['commerce', 'commerce.owner', 'category'],
@@ -93,7 +98,7 @@ export class ProductsService {
     return product;
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto, user: User) {
+  async update(id: number, updateProductDto: UpdateProductDto, user: User) {
     const product = await this.findOne(id);
 
     if (product.commerce.owner.id !== user.id) {
@@ -106,7 +111,9 @@ export class ProductsService {
     Object.assign(product, rest);
 
     if (categoryId) {
-      const category = await this.categoryRepository.findOne({ where: { id: categoryId } });
+      const category = await this.categoryRepository.findOne({
+        where: { id: categoryId },
+      });
       if (!category) {
         throw new NotFoundException('Categoría no encontrada');
       }
@@ -116,14 +123,14 @@ export class ProductsService {
     return this.productRepository.save(product);
   }
 
-  async remove(id: string, user: User) {
+  async remove(id: number, user: User) {
     const product = await this.findOne(id);
     if (product.commerce.owner.id !== user.id) {
       throw new ForbiddenException(
         'No tienes permiso para eliminar este producto',
       );
     }
-    product.isActive = false;
+    product.status = ProductStatus.SOLD_OUT;
     return this.productRepository.save(product);
   }
 
@@ -133,7 +140,7 @@ export class ProductsService {
     });
   }
 
-  async findCategoryById(id: string) {
+  async findCategoryById(id: number) {
     const category = await this.categoryRepository.findOne({
       where: { id },
       relations: ['products'],
@@ -155,10 +162,10 @@ export class ProductsService {
     return category;
   }
 
-  async findProductsByCategory(categoryId: string, commerceId?: string) {
+  async findProductsByCategory(categoryId: number, commerceId?: number) {
     const where: Record<string, unknown> = {
       category: { id: categoryId },
-      isActive: true,
+      status: ProductStatus.ACTIVE,
     };
     if (commerceId) {
       where.commerce = { id: commerceId };
@@ -167,6 +174,12 @@ export class ProductsService {
     return this.productRepository.find({
       where,
       relations: ['commerce', 'category'],
+    });
+  }
+
+  async findAllWithCategory() {
+    return this.productRepository.find({
+      relations: ['category'],
     });
   }
 }

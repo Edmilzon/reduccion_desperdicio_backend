@@ -1,21 +1,33 @@
-import { IsNotEmpty, IsString, IsOptional, IsPhoneNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateCommerceDto {
   @IsString()
-  @IsNotEmpty({ message: 'El nombre del comercio es obligatorio' })
+  @IsNotEmpty({ message: 'El nombre del restaurante es obligatorio' })
   name: string;
 
   @IsString()
   @IsOptional()
   description?: string;
 
-  @IsString()
-  @IsNotEmpty({ message: 'La dirección es obligatoria' })
-  address: string;
+  @IsNumber({}, { message: 'Latitud inválida' })
+  @IsOptional()
+  latitude?: number;
+
+  @IsNumber({}, { message: 'Longitud inválida' })
+  @IsOptional()
+  longitude?: number;
+
+  @IsNumber({}, { message: 'Rating inválido' })
+  @IsOptional()
+  rating?: number;
 
   @IsString()
   @IsOptional()
-  phone?: string;
+  imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  nit?: string;
 }
 
 export class UpdateCommerceDto {
@@ -27,11 +39,23 @@ export class UpdateCommerceDto {
   @IsOptional()
   description?: string;
 
-  @IsString()
+  @IsNumber({}, { message: 'Latitud inválida' })
   @IsOptional()
-  address?: string;
+  latitude?: number;
+
+  @IsNumber({}, { message: 'Longitud inválida' })
+  @IsOptional()
+  longitude?: number;
+
+  @IsNumber({}, { message: 'Rating inválido' })
+  @IsOptional()
+  rating?: number;
 
   @IsString()
   @IsOptional()
-  phone?: string;
+  imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  nit?: string;
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Commerce } from './entities/commerce.entity';
@@ -22,12 +26,11 @@ export class CommercesService {
 
   async findAll() {
     return this.commerceRepository.find({
-      where: { isActive: true },
       relations: ['owner'],
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: number) {
     const commerce = await this.commerceRepository.findOne({
       where: { id },
       relations: ['owner'],
@@ -38,24 +41,26 @@ export class CommercesService {
     return commerce;
   }
 
-  async update(id: string, updateCommerceDto: UpdateCommerceDto, user: User) {
+  async update(id: number, updateCommerceDto: UpdateCommerceDto, user: User) {
     const commerce = await this.findOne(id);
 
-    // Verificar que el usuario sea el dueño
     if (commerce.owner.id !== user.id) {
-      throw new ForbiddenException('No tienes permiso para editar este comercio');
+      throw new ForbiddenException(
+        'No tienes permiso para editar este comercio',
+      );
     }
 
     Object.assign(commerce, updateCommerceDto);
     return this.commerceRepository.save(commerce);
   }
 
-  async remove(id: string, user: User) {
+  async remove(id: number, user: User) {
     const commerce = await this.findOne(id);
     if (commerce.owner.id !== user.id) {
-      throw new ForbiddenException('No tienes permiso para eliminar este comercio');
+      throw new ForbiddenException(
+        'No tienes permiso para eliminar este comercio',
+      );
     }
-    commerce.isActive = false;
-    return this.commerceRepository.save(commerce);
+    return this.commerceRepository.remove(commerce);
   }
 }
