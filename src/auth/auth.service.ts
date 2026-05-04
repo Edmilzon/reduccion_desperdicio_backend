@@ -121,6 +121,21 @@ export class AuthService {
     };
   }
 
+  async getProfile(userId: number) {
+    const user = await this.usersService.findById(userId);
+    const profileRepo = this.dataSource.getRepository(Profile);
+    const profile = await profileRepo.findOne({ where: { userId: user.id } });
+    
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: profile?.fullName || null,
+        role: user.role,
+      }
+    };
+  }
+
   async logout() {
     return {
       message:
