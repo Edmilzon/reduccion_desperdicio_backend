@@ -36,33 +36,33 @@ describe('AuthService', () => {
     authService = module.get<AuthService>(AuthService);
   });
 
-  it('debería estar definido', () => {
+  it('should be defined', () => {
     expect(authService).toBeDefined();
   });
 
-  describe('Probar login incorrecto', () => {
-    it('debería lanzar UnauthorizedException si el usuario no existe', async () => {
+  describe('Test incorrect login', () => {
+    it('should throw UnauthorizedException if the user does not exist', async () => {
       usersService.findWithPasswordByEmail.mockResolvedValue(null);
 
       await expect(
-        authService.login({ email: 'noexiste@correo.com', password: '123' }),
+        authService.login({ email: 'notexists@email.com', password: '123' }),
       ).rejects.toThrow(new UnauthorizedException('Credenciales inválidas'));
     });
 
-    it('debería lanzar UnauthorizedException si la contraseña es incorrecta', async () => {
+    it('should throw UnauthorizedException if the password is incorrect', async () => {
       const mockUser: any = {
         id: 1,
-        email: 'test@correo.com',
+        email: 'test@email.com',
         password: 'hashedPassword',
         role: 'CLIENT',
       };
       usersService.findWithPasswordByEmail.mockResolvedValue(mockUser);
 
-      // Simulamos que bcrypt.compare devuelve false (contraseña incorrecta)
+      // Simulate bcrypt.compare returning false (incorrect password)
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(
-        authService.login({ email: 'test@correo.com', password: 'wrongPassword' }),
+        authService.login({ email: 'test@email.com', password: 'wrongPassword' }),
       ).rejects.toThrow(new UnauthorizedException('Credenciales inválidas'));
     });
   });
