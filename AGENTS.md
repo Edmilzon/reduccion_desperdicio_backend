@@ -44,13 +44,12 @@ Copy `.env.example` to `.env`. Required variables:
 | `auth/` | `/auth` | — | JWT login, register, register-commerce, me, logout |
 | `users/` | none (no controller) | User, Profile, Review, Notification | — |
 | `commerces/` | `/commerces` | Commerce, Location | Write routes guarded |
-| `products/` | `/products` | Product, Category | Write routes guarded |
+| `products/` | `/products` | Product, Category, +stats | Write routes guarded |
 | `orders/` | `/orders` | Order | All routes guarded |
-| `dashboard/` | `/dashboard` | — (reads products, orders, commerces) | — |
 
 **Auth flow**: Passport JWT strategy extracts Bearer token from `Authorization` header. Payload provides `{ userId, email, role }` via `req.user`. Password hashing via `bcrypt`.
 
-**Cross-module dependencies**: `AuthModule` imports `UsersModule` and `CommercesModule`. `DashboardModule` reads across products, orders, and commerces.
+**Cross-module dependencies**: `AuthModule` imports `UsersModule` and `CommercesModule`. `ProductsModule` reads products, orders, and commerces for stats.
 
 ## Key Conventions & Gotchas
 
@@ -62,6 +61,7 @@ Copy `.env.example` to `.env`. Required variables:
 - **Only 2 unit test files exist** — `auth.service.spec.ts` and `app.controller.spec.ts`. Most modules have no tests.
 - **Deploy target**: Vercel (`vercel-build` script defined).
 - **API testing**: REST client files in `api/*.http` for manual endpoint testing (VS Code REST Client or similar).
+- **Complete API docs**: See `api/api.http` for full flow documentation.
 
 ## Project Structure
 
@@ -72,9 +72,8 @@ src/
 ├── auth/                      # JWT auth: login, register, register-commerce, me, logout
 ├── users/                     # User, Profile, Review, Notification entities (no controller)
 ├── commerces/                 # /commerces routes, Commerce, Location
-├── products/                  # /products routes, Product, Category
-├── orders/                    # /orders routes, Order
-└── dashboard/                 # /dashboard (reads across modules)
+├── products/                  # /products routes, Product, Category, +stats
+└── orders/                    # /orders routes, Order
 ```
 
 ## Additional Resources

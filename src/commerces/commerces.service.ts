@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Commerce } from './entities/commerce.entity';
+import { Product, ProductStatus } from '../products/entities/product.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateCommerceDto, UpdateCommerceDto } from './dto/commerce.dto';
 
@@ -14,6 +15,8 @@ export class CommercesService {
   constructor(
     @InjectRepository(Commerce)
     private readonly commerceRepository: Repository<Commerce>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
   ) {}
 
   async create(createCommerceDto: CreateCommerceDto, user: User) {
@@ -62,5 +65,14 @@ export class CommercesService {
       );
     }
     return this.commerceRepository.remove(commerce);
+  }
+
+  async findProductsByCommerce(id: number) {
+    const commerce = await this.findOne(id);
+    const products = await this.productRepository.find({
+      where: { commerce: { id }, status: ProductStatus.ACTIVE },
+      relations: ['category'],
+    });
+    return { commerce, products };
   }
 }

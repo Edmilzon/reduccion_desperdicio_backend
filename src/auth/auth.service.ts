@@ -75,7 +75,7 @@ export class AuthService {
       fullName: ownerName,
     });
 
-    await this.commercesService.create(
+    const commerce = await this.commercesService.create(
       {
         name: commerceName,
         description,
@@ -91,6 +91,7 @@ export class AuthService {
 
     return {
       user: { ...result, name: ownerName },
+      commerce: { id: commerce.id, name: commerce.name },
       access_token: await this.jwtService.signAsync(payload),
     };
   }

@@ -48,16 +48,6 @@ export class ProductsController {
     return this.productsService.findAllCategories();
   }
 
-  @Get('categories/:id')
-  findCategoryById(@Param('id') id: string) {
-    return this.productsService.findCategoryById(+id);
-  }
-
-  @Get('categories/slug/:slug')
-  findCategoryBySlug(@Param('slug') slug: string) {
-    return this.productsService.findCategoryBySlug(slug);
-  }
-
   @Get('all')
   findAllWithCategory() {
     return this.productsService.findAllWithCategory();
@@ -90,6 +80,14 @@ export class ProductsController {
       status as any,
       categoryId ? +categoryId : undefined,
     );
+  }
+
+  @Get('commerce/:commerceId/stats')
+  getCommerceStats(
+    @Param('commerceId') commerceId: string,
+    @Request() req: AuthRequest,
+  ) {
+    return this.productsService.getCommerceStats(+commerceId, req.user);
   }
 
   @Get(':id')

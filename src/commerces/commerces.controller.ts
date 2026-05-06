@@ -15,22 +15,27 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('commerces')
 export class CommercesController {
-  constructor(private readonly commercesService: CommercesService) {}
+  constructor(private readonly commerceService: CommercesService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createCommerceDto: CreateCommerceDto, @Request() req) {
-    return this.commercesService.create(createCommerceDto, req.user);
+    return this.commerceService.create(createCommerceDto, req.user);
   }
 
   @Get()
   findAll() {
-    return this.commercesService.findAll();
+    return this.commerceService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.commercesService.findOne(+id);
+    return this.commerceService.findOne(+id);
+  }
+
+  @Get(':id/products')
+  findProductsByCommerce(@Param('id') id: string) {
+    return this.commerceService.findProductsByCommerce(+id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -40,12 +45,12 @@ export class CommercesController {
     @Body() updateCommerceDto: UpdateCommerceDto,
     @Request() req,
   ) {
-    return this.commercesService.update(+id, updateCommerceDto, req.user);
+    return this.commerceService.update(+id, updateCommerceDto, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {
-    return this.commercesService.remove(+id, req.user);
+    return this.commerceService.remove(+id, req.user);
   }
 }

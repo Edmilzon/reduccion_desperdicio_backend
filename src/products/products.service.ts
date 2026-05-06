@@ -4,12 +4,13 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { Product, ProductStatus } from './entities/product.entity';
 import { Category } from './entities/category.entity';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 import { CommercesService } from '../commerces/commerces.service';
-import { User } from '../users/entities/user.entity';
+import { User, UserRole } from '../users/entities/user.entity';
+import { Order } from '../orders/entities/order.entity';
 
 @Injectable()
 export class ProductsService {
@@ -18,6 +19,8 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
     private readonly comerciosService: CommercesService,
   ) {}
 
@@ -181,18 +184,93 @@ export class ProductsService {
     });
   }
 
-  async search(query: string) {
+async search(query: string) {
     const qb = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.commerce', 'commerce')
       .where('product.status = :status', { status: ProductStatus.ACTIVE })
       .andWhere(
-        '(product.title ILIKE :query OR product.description ILIKE :query OR commerce.name ILIKE :query)',
+        '(product.title ILIKE :query OR product.description ILIKE query OR commerce.name ILIKE :query)',
         { query: `%${query}%` },
       )
       .orderBy('product.createdAt', 'DESC');
 
     return qb.getMany();
+  }
+
+  async getCommerceStats(commerceId: number, user: User) {
+    const commerce = await this.comerciosService.findOne(commerceId);
+
+    if (commerce.owner.id !== user.id && user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException(
+        'No tienes permiso para ver el panel de este comercio',
+      );
+    }
+
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+
+    const activeOffers = await this.productRepository.count({
+      where: { commerce: { id: commerceId }, status: ProductStatus.ACTIVE },
+    });
+
+    const todayOffers = await this.productRepository.count({
+      where: {
+        commerce: { id: commerceId },
+        createdAt: Between(startOfDay, endOfDay),
+      },
+    });
+
+    const todayOrdersCount = await this.orderRepository.count({
+      where: {
+        product: { commerce: { id: commerceId } },
+        createdAt: Between(startOfDay, endOfDay),
+      },
+    });
+
+    const salesResult = await this.orderRepository
+      .createQueryBuilder('order')
+      .innerJoin('order.product', 'product')
+      .innerJoin('product.commerce', 'commerce')
+      .select('COALESCE(SUM(order.totalPrice), 0)', 'totalSales')
+      .addSelect('COALESCE(SUM(order.quantity), 0)', 'totalUnitsSold')
+      .where('commerce.id = :commerceId', { commerceId })
+      .andWhere('order.createdAt BETWEEN :start AND :end', {
+        start: startOfDay,
+        end: endOfDay,
+      })
+      .getRawOne();
+
+    const nearExpiryOffers = await this.productRepository
+      .createQueryBuilder('product')
+      .where('product.commerceId = :commerceId', { commerceId })
+      .andWhere('product.status = :status', { status: ProductStatus.ACTIVE })
+      .andWhere('product.pickupEnd IS NOT NULL')
+      .andWhere('product.pickupEnd <= :twoHours', {
+        twoHours: twoHoursFromNow,
+      })
+      .andWhere('product.pickupEnd > :now', { now })
+      .getMany();
+
+return {
+      activeOffers,
+      todayOffers,
+      todayOrders: todayOrdersCount,
+      todaySales: Number(salesResult?.totalSales ?? 0),
+      totalUnitsSold: Number(salesResult?.totalUnitsSold ?? 0),
+      nearExpiryOffers: nearExpiryOffers.map((p) => ({
+        id: p.id,
+        title: p.title,
+        quantity: p.quantity,
+        pickupEnd: p.pickupEnd,
+        price: p.price,
+      })),
+      nearExpiryCount: nearExpiryOffers.length,
+    };
   }
 }

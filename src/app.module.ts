@@ -8,7 +8,6 @@ import { CommercesModule } from './commerces/commerces.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
-import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -30,7 +29,6 @@ import { DashboardModule } from './dashboard/dashboard.module';
     AuthModule,
     ProductsModule,
     OrdersModule,
-    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
