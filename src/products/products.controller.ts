@@ -63,6 +63,11 @@ export class ProductsController {
     return this.productsService.findAllWithCategory();
   }
 
+  @Get('search')
+  search(@Query('q') query: string) {
+    return this.productsService.search(query);
+  }
+
   @Get('category/:categoryId')
   findProductsByCategory(
     @Param('categoryId') categoryId: string,

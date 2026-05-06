@@ -182,4 +182,19 @@ export class ProductsService {
       relations: ['category'],
     });
   }
+
+  async search(query: string) {
+    const qb = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.commerce', 'commerce')
+      .where('product.status = :status', { status: ProductStatus.ACTIVE })
+      .andWhere(
+        '(product.title ILIKE :query OR product.description ILIKE :query OR commerce.name ILIKE :query)',
+        { query: `%${query}%` },
+      )
+      .orderBy('product.createdAt', 'DESC');
+
+    return qb.getMany();
+  }
 }
