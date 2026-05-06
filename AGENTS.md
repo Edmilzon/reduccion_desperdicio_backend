@@ -61,3 +61,24 @@ Copy `.env.example` to `.env`. Required variables:
 - **Module exports** — `UsersModule` and `CommercesModule` export their `TypeOrmModule` alongside their services, so other modules can access their repositories.
 - **Only 2 unit test files exist** — `auth.service.spec.ts` and `app.controller.spec.ts`. Most modules have no tests.
 - **Deploy target**: Vercel (`vercel-build` script defined).
+- **API testing**: REST client files in `api/*.http` for manual endpoint testing (VS Code REST Client or similar).
+
+## Project Structure
+
+```
+src/
+├── main.ts                    # Entry point with ValidationPipe
+├── app.module.ts              # Root module, imports all feature modules
+├── auth/                      # JWT auth: login, register, register-commerce, me, logout
+├── users/                     # User, Profile, Review, Notification entities (no controller)
+├── commerces/                 # /commerces routes, Commerce, Location
+├── products/                  # /products routes, Product, Category
+├── orders/                    # /orders routes, Order
+└── dashboard/                 # /dashboard (reads across modules)
+```
+
+## Additional Resources
+
+- `AUTH_FLOW.md` — Detailed authentication flow with sequence diagrams
+- `database/` — SQL scripts for manual DB setup (`create_database.sql`, `seed.sql`, etc.)
+- `api/*.http` — REST client files for manual endpoint testing
