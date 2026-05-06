@@ -135,15 +135,13 @@ export class ProductsService {
   }
 
   async findAllCategories() {
-    return this.categoryRepository.find({
-      relations: ['products'],
-    });
+    return this.categoryRepository.find();
   }
 
-  async findCategoryById(id: number) {
+  async findCategoryById(id: number, includeProducts = false) {
     const category = await this.categoryRepository.findOne({
       where: { id },
-      relations: ['products'],
+      ...(includeProducts ? { relations: ['products'] } : {}),
     });
     if (!category) {
       throw new NotFoundException('Categoría no encontrada');
@@ -151,10 +149,10 @@ export class ProductsService {
     return category;
   }
 
-  async findCategoryBySlug(slug: string) {
+  async findCategoryBySlug(slug: string, includeProducts = false) {
     const category = await this.categoryRepository.findOne({
       where: { slug },
-      relations: ['products'],
+      ...(includeProducts ? { relations: ['products'] } : {}),
     });
     if (!category) {
       throw new NotFoundException('Categoría no encontrada');
