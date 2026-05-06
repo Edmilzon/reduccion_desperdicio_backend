@@ -61,10 +61,22 @@ Content-Type: application/json
 # ------------------------------------------------------------------------------
 # 4. Ver perfil actual
 # ------------------------------------------------------------------------------
+# Si el usuario es MERCHANT, también devuelve su comercio.
 @token = your_jwt_token_here
 
 GET {{baseURL}}/auth/me
 Authorization: Bearer {{token}}
+
+# Ejemplo respuesta (MERCHANT):
+# {
+#   "user": { "id": 1, "email": "...", "name": "...", "role": "MERCHANT" },
+#   "commerce": { "id": 1, "name": "Panadería Don Juan" }
+# }
+
+# Ejemplo respuesta (CLIENT):
+# {
+#   "user": { "id": 1, "email": "...", "name": "...", "role": "CLIENT" }
+# }
 
 # ------------------------------------------------------------------------------
 # 5. Cerrar sesión

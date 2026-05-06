@@ -10,6 +10,7 @@ import { CommercesService } from '../commerces/commerces.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 import { RegisterCommerceDto } from './dto/register-commerce.dto';
 import { UserRole, Profile } from '../users/entities/user.entity';
+import { Commerce } from '../commerces/entities/commerce.entity';
 import { DataSource } from 'typeorm';
 
 @Injectable()
@@ -127,7 +128,7 @@ export class AuthService {
     const profileRepo = this.dataSource.getRepository(Profile);
     const profile = await profileRepo.findOne({ where: { userId: user.id } });
     
-    return {
+    const result: any = {
       user: {
         id: user.id,
         email: user.email,
@@ -135,6 +136,18 @@ export class AuthService {
         role: user.role,
       }
     };
+
+    if (user.role === UserRole.MERCHANT) {
+      const commerceRepo = this.dataSource.getRepository(Commerce);
+      const commerce = await commerceRepo.findOne({
+        where: { owner: { id: user.id } }
+      });
+      if (commerce) {
+        result.commerce = { id: commerce.id, name: commerce.name };
+      }
+    }
+
+    return result;
   }
 
   async logout() {
