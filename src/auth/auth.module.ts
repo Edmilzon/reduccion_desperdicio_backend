@@ -15,6 +15,7 @@ import { CommercesModule } from '../commerces/commerces.module';
     PassportModule,
     UsersModule,
     CommercesModule,
+    TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
