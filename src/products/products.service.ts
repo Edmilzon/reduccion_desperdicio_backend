@@ -246,6 +246,11 @@ export class ProductsService {
       },
     });
 
+    interface SalesResult {
+      totalSales: string | null;
+      totalUnitsSold: string | null;
+    }
+
     const salesResult = await this.orderRepository
       .createQueryBuilder('order')
       .innerJoin('order.product', 'product')
@@ -257,7 +262,7 @@ export class ProductsService {
         start: startOfDay,
         end: endOfDay,
       })
-      .getRawOne();
+      .getRawOne<SalesResult>();
 
     const nearExpiryOffers = await this.productRepository
       .createQueryBuilder('product')
