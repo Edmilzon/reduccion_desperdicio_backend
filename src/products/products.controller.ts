@@ -77,7 +77,7 @@ export class ProductsController {
   ) {
     return this.productsService.findByCommerce(
       +commerceId,
-      status as any,
+      status,
       categoryId ? +categoryId : undefined,
     );
   }
