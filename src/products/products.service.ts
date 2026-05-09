@@ -194,6 +194,10 @@ export class ProductsService {
   }
 
   async search(query: string) {
+    if (!query || query.trim().length === 0) {
+      return [];
+    }
+
     const qb = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
@@ -201,7 +205,7 @@ export class ProductsService {
       .where('product.status = :status', { status: ProductStatus.ACTIVE })
       .andWhere(
         '(product.title ILIKE :query OR product.description ILIKE :query OR commerce.name ILIKE :query)',
-        { query: `%${query}%` },
+        { query: `%${query.trim()}%` },
       )
       .orderBy('product.createdAt', 'DESC');
 
