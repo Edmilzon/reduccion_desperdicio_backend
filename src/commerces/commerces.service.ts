@@ -33,6 +33,12 @@ export class CommercesService {
     });
   }
 
+  async findAllList() {
+    return this.commerceRepository.find({
+      select: ['id', 'name'],
+    });
+  }
+
   async findOne(id: number) {
     const commerce = await this.commerceRepository.findOne({
       where: { id },

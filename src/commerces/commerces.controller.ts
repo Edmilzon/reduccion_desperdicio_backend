@@ -28,6 +28,11 @@ export class CommercesController {
     return this.commerceService.findAll();
   }
 
+  @Get('list/all')
+  findAllList() {
+    return this.commerceService.findAllList();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.commerceService.findOne(+id);
