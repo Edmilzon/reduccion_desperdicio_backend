@@ -62,7 +62,10 @@ describe('AuthService', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(
-        authService.login({ email: 'test@email.com', password: 'wrongPassword' }),
+        authService.login({
+          email: 'test@email.com',
+          password: 'wrongPassword',
+        }),
       ).rejects.toThrow(new UnauthorizedException('Credenciales inválidas'));
     });
   });

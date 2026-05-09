@@ -12,6 +12,8 @@ import { CommercesService } from '../commerces/commerces.service';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Order } from '../orders/entities/order.entity';
 
+const NEAR_EXPIRY_HOURS = 2;
+
 @Injectable()
 export class ProductsService {
   constructor(
@@ -66,11 +68,18 @@ export class ProductsService {
 
   async findByCommerce(
     commerceId: number,
-    status = ProductStatus.ACTIVE,
+    status?: string,
     categoryId?: number,
   ) {
     const where: Record<string, unknown> = { commerce: { id: commerceId } };
-    if (status) where.status = status;
+    if (
+      status &&
+      Object.values(ProductStatus).includes(status as ProductStatus)
+    ) {
+      where.status = status as ProductStatus;
+    } else {
+      where.status = ProductStatus.ACTIVE;
+    }
     if (categoryId) where.category = { id: categoryId };
 
     const products = await this.productRepository.find({
@@ -80,7 +89,7 @@ export class ProductsService {
     });
 
     const now = new Date();
-    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    const twoHoursFromNow = new Date(now.getTime() + NEAR_EXPIRY_HOURS * 60 * 60 * 1000);
 
     return products.map((product) => ({
       ...product,
@@ -184,14 +193,14 @@ export class ProductsService {
     });
   }
 
-async search(query: string) {
+  async search(query: string) {
     const qb = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.commerce', 'commerce')
       .where('product.status = :status', { status: ProductStatus.ACTIVE })
       .andWhere(
-        '(product.title ILIKE :query OR product.description ILIKE query OR commerce.name ILIKE :query)',
+        '(product.title ILIKE :query OR product.description ILIKE :query OR commerce.name ILIKE :query)',
         { query: `%${query}%` },
       )
       .orderBy('product.createdAt', 'DESC');
@@ -213,7 +222,7 @@ async search(query: string) {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(now);
     endOfDay.setHours(23, 59, 59, 999);
-    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    const twoHoursFromNow = new Date(now.getTime() + NEAR_EXPIRY_HOURS * 60 * 60 * 1000);
 
     const activeOffers = await this.productRepository.count({
       where: { commerce: { id: commerceId }, status: ProductStatus.ACTIVE },
@@ -257,7 +266,7 @@ async search(query: string) {
       .andWhere('product.pickupEnd > :now', { now })
       .getMany();
 
-return {
+    return {
       activeOffers,
       todayOffers,
       todayOrders: todayOrdersCount,

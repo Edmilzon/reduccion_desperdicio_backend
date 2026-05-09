@@ -127,20 +127,20 @@ export class AuthService {
     const user = await this.usersService.findById(userId);
     const profileRepo = this.dataSource.getRepository(Profile);
     const profile = await profileRepo.findOne({ where: { userId: user.id } });
-    
+
     const result: any = {
       user: {
         id: user.id,
         email: user.email,
         name: profile?.fullName || null,
         role: user.role,
-      }
+      },
     };
 
     if (user.role === UserRole.MERCHANT) {
       const commerceRepo = this.dataSource.getRepository(Commerce);
       const commerce = await commerceRepo.findOne({
-        where: { owner: { id: user.id } }
+        where: { owner: { id: user.id } },
       });
       if (commerce) {
         result.commerce = { id: commerce.id, name: commerce.name };
