@@ -112,7 +112,7 @@ export class AuthService {
 
     const payload = { sub: user.id, email: user.email, role: user.role };
 
-    return {
+    const result: any = {
       user: {
         id: user.id,
         email: user.email,
@@ -121,6 +121,18 @@ export class AuthService {
       },
       access_token: await this.jwtService.signAsync(payload),
     };
+
+    if (user.role === UserRole.MERCHANT) {
+      const commerceRepo = this.dataSource.getRepository(Commerce);
+      const commerce = await commerceRepo.findOne({
+        where: { owner: { id: user.id } },
+      });
+      if (commerce) {
+        result.commerce = { id: commerce.id, name: commerce.name };
+      }
+    }
+
+    return result;
   }
 
   async getProfile(userId: number) {
