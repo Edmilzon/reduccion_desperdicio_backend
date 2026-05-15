@@ -21,7 +21,7 @@ Always run build after changes to verify compilation.
 
 ## Environment
 
-Copy `.env.example` to `.env`. Required: `DATABASE_URL`, `JWT_SECRET` (throws on startup if missing). `PORT` defaults to 3000 in code, 5000 in example. PostgreSQL required.
+Copy `.env.example` to `.env`. Required: `DATABASE_URL`, `JWT_SECRET` (throws on startup if missing). Optional: `JWT_EXPIRATION` (default: `24h`), `PORT` (default: 3000). PostgreSQL required.
 
 ## Source Structure
 
@@ -57,7 +57,7 @@ src/
 - `POST /auth/register-commerce` — Register merchant (ownerName, email, password, commerceName, description, latitude, longitude, nit)
 - `POST /auth/login` — Login (email, password)
 - `GET /auth/me` — Get current user profile (protected)
-- `POST /auth/logout` — Logout (protected)
+- `POST /auth/logout` — Logout (protected, client-side token removal only)
 
 ### users/ — Entities only (no controller)
 
@@ -139,11 +139,12 @@ src/
 
 - **No migrations** — `synchronize: true` + `autoLoadEntities: true`. Schema auto-syncs.
 - **Loose types** — `strictNullChecks: false`, `noImplicitAny: false`. Expect `any`.
-- **DTO validation** — All endpoints use `class-validator` DTOs with global pipe.
+- **DTO validation** — Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`, `transform: true`.
+- **Prettier** — single quotes, trailing commas (`.prettierrc`).
 - **Module exports** — `UsersModule`, `CommercesModule`, `ProductsModule`, `OrdersModule` export `TypeOrmModule` for cross-module access.
 - **Ownership checks** — Commerces: owner can edit/delete own. Products: owner can edit/delete own. Stats: owner or admin.
-- **Tests** — Only 2 unit test files: `auth.service.spec.ts`, `app.controller.spec.ts`
-- **Deploy** — Vercel target (`vercel-build` script)
+- **Tests** — Jest in `src/` with `*.spec.ts` pattern. Only 2 test files: `auth.service.spec.ts`, `app.controller.spec.ts`.
+- **Deploy** — Vercel target (`vercel-build` runs `nest build`).
 
 ## Resources
 
