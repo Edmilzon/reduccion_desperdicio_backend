@@ -2,9 +2,10 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm';
 import { Commerce } from './entities/commerce.entity';
 import { Product, ProductStatus } from '../products/entities/product.entity';
 import { User } from '../users/entities/user.entity';
@@ -80,5 +81,84 @@ export class CommercesService {
       relations: ['category'],
     });
     return { commerce, products };
+  }
+
+  async findByAddress(address: string) {
+    try {
+      // Usar Nominatim (OpenStreetMap) para geocodificar la dirección
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'EcoBocadoApp/1.0',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al conectar con el servicio de geolocalización');
+      }
+
+      const data = await response.json();
+
+      if (!data || data.length === 0) {
+        throw new NotFoundException('No se pudo encontrar la dirección proporcionada');
+      }
+
+      const { lat, lon } = data[0];
+      const latitude = parseFloat(lat);
+      const longitude = parseFloat(lon);
+
+      return this.findByCoordinates(latitude, longitude);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error al procesar la búsqueda por dirección: ' + error.message,
+      );
+    }
+  }
+
+  async findByCoordinates(latitude: number, longitude: number) {
+    // Encontrar todos los comercios y calcular la distancia (en km)
+    const commerces = await this.commerceRepository.find({
+      where: { latitude: Not(IsNull()), longitude: Not(IsNull()) },
+      relations: ['owner'],
+    });
+
+    const commercesWithDistance = commerces.map((commerce) => {
+      const distance = this.calculateDistance(
+        latitude,
+        longitude,
+        commerce.latitude,
+        commerce.longitude,
+      );
+      return {
+        ...commerce,
+        distance,
+      };
+    });
+
+    // Ordenar por distancia y retornar los más cercanos primero
+    return commercesWithDistance.sort((a, b) => a.distance - b.distance);
+  }
+
+  // Método privado para calcular distancia usando Haversine (en kilómetros)
+  private calculateDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   }
 }

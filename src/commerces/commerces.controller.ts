@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { CommercesService } from './commerces.service';
 import { CreateCommerceDto, UpdateCommerceDto } from './dto/commerce.dto';
@@ -26,6 +28,22 @@ export class CommercesController {
   @Get()
   findAll() {
     return this.commerceService.findAll();
+  }
+
+  @Get('by-address')
+  findByAddress(@Query('address') address: string) {
+    if (!address) {
+      throw new BadRequestException('Address query parameter is required');
+    }
+    return this.commerceService.findByAddress(address);
+  }
+
+  @Get('nearby')
+  findNearby(@Query('lat') lat: string, @Query('lng') lng: string) {
+    if (!lat || !lng) {
+      throw new BadRequestException('lat and lng query parameters are required');
+    }
+    return this.commerceService.findByCoordinates(parseFloat(lat), parseFloat(lng));
   }
 
   @Get('list/all')
