@@ -108,7 +108,7 @@ export class CommercesService {
       const longitude = parseFloat(lon);
 
       return this.findByCoordinates(latitude, longitude);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -118,28 +118,60 @@ export class CommercesService {
     }
   }
 
-  async findByCoordinates(latitude: number, longitude: number) {
+  async findByCoordinates(latitude: number, longitude: number, radiusKm = 3) {
     // Encontrar todos los comercios y calcular la distancia (en km)
     const commerces = await this.commerceRepository.find({
       where: { latitude: Not(IsNull()), longitude: Not(IsNull()) },
-      relations: ['owner'],
+      relations: ['products'],
     });
 
     const commercesWithDistance = commerces.map((commerce) => {
+      const activeProducts = (commerce.products ?? []).filter((product) => {
+        return (
+          product.status === ProductStatus.ACTIVE &&
+          Number(product.quantity) > 0
+        );
+      });
+
+      if (activeProducts.length === 0) {
+        return null;
+      }
+      
       const distance = this.calculateDistance(
         latitude,
         longitude,
-        commerce.latitude,
-        commerce.longitude,
+        Number(commerce.latitude),
+        Number(commerce.longitude),
       );
-      return {
-        ...commerce,
-        distance,
+
+      const pickupLimitDate = activeProducts
+        .map((product) => new Date(product.pickupEnd))
+        .sort((a, b) => a.getTime() - b.getTime())[0];
+      
+        return {
+          id: commerce.id,
+          name: commerce.name,
+          description: commerce.description,
+          latitude: Number(commerce.latitude),
+          longitude: Number(commerce.longitude),
+          rating: commerce.rating ? Number(commerce.rating) : null,
+          imageUrl: commerce.imageUrl,
+          distance: Number(distance.toFixed(1)),
+          availableOffers: activeProducts.length,
+          pickupLimit: pickupLimitDate
+          ? pickupLimitDate.toLocaleTimeString('es-BO', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false,
+            })
+          : null,
       };
-    });
+    })
+    .filter((commerce) => commerce !== null)
+    .sort((a, b) => a!.distance - b!.distance);
 
     // Ordenar por distancia y retornar los más cercanos primero
-    return commercesWithDistance.sort((a, b) => a.distance - b.distance);
+    return commercesWithDistance;
   }
 
   // Método privado para calcular distancia usando Haversine (en kilómetros)

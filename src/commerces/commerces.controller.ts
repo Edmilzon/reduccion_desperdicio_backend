@@ -39,11 +39,11 @@ export class CommercesController {
   }
 
   @Get('nearby')
-  findNearby(@Query('lat') lat: string, @Query('lng') lng: string) {
+  findNearby(@Query('lat') lat: string, @Query('lng') lng: string, @Query('radius') radius: string,) {
     if (!lat || !lng) {
       throw new BadRequestException('lat and lng query parameters are required');
     }
-    return this.commerceService.findByCoordinates(parseFloat(lat), parseFloat(lng));
+    return this.commerceService.findByCoordinates(parseFloat(lat), parseFloat(lng), radius ? parseFloat(radius) : 3,);
   }
 
   @Get('list/all')
