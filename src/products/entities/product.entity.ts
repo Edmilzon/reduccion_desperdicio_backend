@@ -24,6 +24,9 @@ export class Product {
   @Column({ type: 'timestamp', nullable: true })
   expiryDate: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  pickupDeadline: Date;
+
   @Column({ default: true })
   isActive: boolean;
 
