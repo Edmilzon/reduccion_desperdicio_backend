@@ -1,4 +1,12 @@
-import { IsNotEmpty, IsString, IsOptional, IsNumber, IsDateString, IsUUID, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsDateString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -24,6 +32,10 @@ export class CreateProductDto {
   @IsDateString({}, { message: 'Fecha de vencimiento inválida' })
   @IsOptional()
   expiryDate?: string;
+
+  @IsDateString({}, { message: 'Hora límite de recojo inválida' })
+  @IsOptional()
+  pickupDeadline?: string;
 
   @IsUUID('all', { message: 'ID de comercio inválido' })
   @IsNotEmpty({ message: 'El ID del comercio es obligatorio' })
@@ -57,4 +69,8 @@ export class UpdateProductDto {
   @IsDateString()
   @IsOptional()
   expiryDate?: string;
+
+  @IsDateString()
+  @IsOptional()
+  pickupDeadline?: string;
 }
