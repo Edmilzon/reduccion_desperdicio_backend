@@ -126,10 +126,12 @@ export class CommercesService {
     });
 
     const commercesWithDistance = commerces.map((commerce) => {
+      const now = new Date();
       const activeProducts = (commerce.products ?? []).filter((product) => {
         return (
           product.status === ProductStatus.ACTIVE &&
-          Number(product.quantity) > 0
+          Number(product.quantity) > 0 &&
+          new Date(product.pickupEnd) >= now
         );
       });
 
@@ -143,6 +145,11 @@ export class CommercesService {
         Number(commerce.latitude),
         Number(commerce.longitude),
       );
+
+      // FILTRO 3 KM ACTIVO
+      if (distance > radiusKm) {
+        return null;
+      }
 
       const pickupLimitDate = activeProducts
         .map((product) => new Date(product.pickupEnd))
