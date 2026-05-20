@@ -19,6 +19,7 @@ NestJS 11 + TypeScript backend for "Eco Bocado" — a food waste reduction platf
 
 Always run build after changes to verify compilation.
 
+
 ## Environment
 
 Copy `.env.example` to `.env`. Required: `DATABASE_URL`, `JWT_SECRET` (throws on startup if missing). Optional: `JWT_EXPIRATION` (default: `24h`), `PORT` (default: 3000, example sets 5000). PostgreSQL required.
