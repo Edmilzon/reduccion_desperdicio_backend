@@ -8,6 +8,9 @@ INSERT INTO users (email, password, role, reset_token) VALUES
 ('panaderia@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
 ('restaurante@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
 ('cafeteria@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
+('burger@cbb.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
+('pizza@cbb.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
+('coffee@cbb.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
 ('cliente1@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'client', NULL),
 ('cliente2@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'client', NULL),
 ('cliente3@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'client', NULL);
@@ -29,7 +32,10 @@ INSERT INTO restaurants ("ownerId", name, description, latitude, longitude, rati
 (3, 'Delicias del Chef', 'Restaurante con comida casera y platillos del día', -12.055473, -77.023456, 4.5, 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400', '20123456790'),
 (4, 'Café Central', 'Café espresso, repostería y desayunos', -12.038921, -77.028532, 4.7, 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400', '20123456791'),
 (5, 'Dulce Pan', 'Pasteles, tartas y panes dulces', -12.067891, -77.012345, 4.6, 'https://images.unsplash.com/photo-1486427944544-d2c6128e4612?w=400', '20123456792'),
-(6, 'Sabor casero', 'Comida peruano tradicional', -12.023456, -77.056789, 4.3, 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400', '20123456793');
+(6, 'Sabor casero', 'Comida peruano tradicional', -12.023456, -77.056789, 4.3, 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400', '20123456793'),
+(8, 'Burger Street CBB', 'Las mejores hamburguesas de Cochabamba', -17.423083, -66.119639, 4.9, 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400', '30123456789'),
+(9, 'Pizza Nostra', 'Pizza artesanal a la leña', -17.424000, -66.120000, 4.7, 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400', '30123456790'),
+(10, 'Coffee Break', 'Café de especialidad y snacks', -17.422500, -66.118500, 4.8, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400', '30123456791');
 
 -- Tabla de productos excedentes
 INSERT INTO product_excedente ("commerceId", "locationId", "categoryId", title, description, original_price, discount_price, quantity, image_url, pickup_start, pickup_end, status) VALUES
@@ -64,7 +70,10 @@ INSERT INTO locations ("restaurant_id", name, latitude, longitude, description, 
 (3, 'Café Central', -12.038921, -77.028532, 'Plaza Mayor, Lima', '999-333-333'),
 (3, 'Café Central - Terraza', -12.038900, -77.028500, 'Plaza Mayor - Terraza', '999-333-334'),
 (4, 'Dulce Pan', -12.067891, -77.012345, 'Av. La Marina 321, Lima', '999-444-444'),
-(5, 'Sabor casero', -12.023456, -77.056789, 'Jr. Huamachuco 654, Lima', '999-555-555');
+(5, 'Sabor casero', -12.023456, -77.056789, 'Jr. Huamachuco 654, Lima', '999-555-555'),
+(6, 'Burger Street - Central', -17.423083, -66.119639, 'Calle Colombia 123, CBB', '444-111-111'),
+(7, 'Pizza Nostra - Plaza', -17.424000, -66.120000, 'Av. Ballivian 456, CBB', '444-222-222'),
+(8, 'Coffee Break - Recoleta', -17.422500, -66.118500, 'Av. Pando 789, CBB', '444-333-333');
 
 -- Tabla de perfiles
 INSERT INTO profiles (user_id, full_name, phone, avatar_url) VALUES
