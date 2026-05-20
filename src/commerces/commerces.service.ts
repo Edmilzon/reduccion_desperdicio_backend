@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, IsNull, Between } from 'typeorm';
 import { Commerce } from './entities/commerce.entity';
+import { Location } from './entities/location.entity';
 import { Product, ProductStatus } from '../products/entities/product.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateCommerceDto, UpdateCommerceDto } from './dto/commerce.dto';
@@ -20,6 +21,8 @@ export class CommercesService {
   constructor(
     @InjectRepository(Commerce)
     private readonly commerceRepository: Repository<Commerce>,
+    @InjectRepository(Location)
+    private readonly locationRepository: Repository<Location>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
   ) {}
@@ -123,15 +126,15 @@ export class CommercesService {
   }
 
   async findByCoordinates(latitude: number, longitude: number, radiusKm = 3) {
-    // Encontrar todos los comercios y calcular la distancia (en km)
-    const commerces = await this.commerceRepository.find({
+    // Encontrar todas las sucursales (locations) y calcular la distancia (en km)
+    const locations = await this.locationRepository.find({
       where: { latitude: Not(IsNull()), longitude: Not(IsNull()) },
-      relations: ['products'],
+      relations: ['commerce', 'products'],
     });
 
-    const commercesWithDistance = commerces.map((commerce) => {
+    const locationsWithDistance = locations.map((location) => {
       const now = new Date();
-      const activeProducts = (commerce.products ?? []).filter((product) => {
+      const activeProducts = (location.products ?? []).filter((product) => {
         return (
           product.status === ProductStatus.ACTIVE &&
           Number(product.quantity) > 0 &&
@@ -139,15 +142,13 @@ export class CommercesService {
         );
       });
 
-      if (activeProducts.length === 0) {
-        return null;
-      }
+      // No filtramos las que no tienen productos, porque según H-18 deben verse atenuadas en el mapa
       
       const distance = this.calculateDistance(
         latitude,
         longitude,
-        Number(commerce.latitude),
-        Number(commerce.longitude),
+        Number(location.latitude),
+        Number(location.longitude),
       );
 
       // FILTRO 3 KM ACTIVO
@@ -155,20 +156,26 @@ export class CommercesService {
         return null;
       }
 
-      const pickupLimitDate = activeProducts
-        .map((product) => new Date(product.pickupEnd))
-        .sort((a, b) => a.getTime() - b.getTime())[0];
+      let pickupLimitDate = null;
+      if (activeProducts.length > 0) {
+        pickupLimitDate = activeProducts
+          .map((product) => new Date(product.pickupEnd))
+          .sort((a, b) => a.getTime() - b.getTime())[0];
+      }
       
         return {
-          id: commerce.id,
-          name: commerce.name,
-          description: commerce.description,
-          latitude: Number(commerce.latitude),
-          longitude: Number(commerce.longitude),
-          rating: commerce.rating ? Number(commerce.rating) : null,
-          imageUrl: commerce.imageUrl,
+          id: location.id,
+          restaurantId: location.commerce.id,
+          name: location.commerce.name,
+          branchName: location.name,
+          description: location.description || location.commerce.description,
+          latitude: Number(location.latitude),
+          longitude: Number(location.longitude),
+          rating: location.commerce.rating ? Number(location.commerce.rating) : null,
+          imageUrl: location.commerce.imageUrl,
           distance: Number(distance.toFixed(1)),
           availableOffers: activeProducts.length,
+          hasActiveOffers: activeProducts.length > 0,
           pickupLimit: pickupLimitDate
           ? pickupLimitDate.toLocaleTimeString('es-BO', {
               hour: '2-digit',
@@ -178,11 +185,11 @@ export class CommercesService {
           : null,
       };
     })
-    .filter((commerce) => commerce !== null)
+    .filter((loc) => loc !== null)
     .sort((a, b) => a!.distance - b!.distance);
 
-    // Ordenar por distancia y retornar los más cercanos primero
-    return commercesWithDistance;
+    // Ordenar por distancia y retornar las sucursales más cercanas primero
+    return locationsWithDistance;
   }
 
   // Método privado para calcular distancia usando Haversine (en kilómetros)
