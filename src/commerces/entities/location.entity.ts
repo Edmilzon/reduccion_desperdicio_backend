@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 import { Commerce } from './commerce.entity';
+import { Product } from '../../products/entities/product.entity';
 
 @Entity('locations')
 export class Location {
@@ -26,4 +27,7 @@ export class Location {
 
   @ManyToOne(() => Commerce, { onDelete: 'CASCADE' })
   commerce: Commerce;
+
+  @OneToMany(() => Product, (product) => product.location)
+  products: Product[];
 }
