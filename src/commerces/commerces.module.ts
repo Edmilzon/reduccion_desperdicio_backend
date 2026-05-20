@@ -8,7 +8,7 @@ import { CommercesController } from './commerces.controller';
 import { RestaurantsController } from './restaurants.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Commerce, Product])],
+  imports: [TypeOrmModule.forFeature([Commerce, Location, Product])],
   controllers: [CommercesController, RestaurantsController],
   providers: [CommercesService],
   exports: [TypeOrmModule, CommercesService],
