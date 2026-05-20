@@ -41,11 +41,6 @@ export class CreateProductDto {
   pickupEnd: string;
 
   @IsNumber({}, { message: 'ID de comercio inválido' })
-  @IsDateString({}, { message: 'Hora límite de recojo inválida' })
-  @IsOptional()
-  pickupDeadline?: string;
-
-  @IsUUID('all', { message: 'ID de comercio inválido' })
   @IsNotEmpty({ message: 'El ID del comercio es obligatorio' })
   commerceId: number;
 

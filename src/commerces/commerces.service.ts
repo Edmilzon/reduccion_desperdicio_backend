@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, IsNull } from 'typeorm';
+import { Repository, Not, IsNull, Between } from 'typeorm';
 import { Commerce } from './entities/commerce.entity';
 import { Product, ProductStatus } from '../products/entities/product.entity';
 import { User } from '../users/entities/user.entity';
@@ -205,44 +205,40 @@ export class CommercesService {
     return R * c;
   }
 
-  async findDetail(id: string): Promise<RestaurantDetailDto> {
+  async findDetail(id: number): Promise<RestaurantDetailDto> {
     const commerce = await this.commerceRepository.findOne({
-      where: { id, isActive: true },
+      where: { id },
     });
     if (!commerce) {
       throw new NotFoundException('Restaurante no encontrado');
     }
 
-    const now = new Date();
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
-
     const products = await this.productRepository.find({
       where: {
         commerce: { id },
-        isActive: true,
-        pickupDeadline: Between(now, todayEnd),
+        status: ProductStatus.ACTIVE,
       },
+      relations: ['category'],
     });
 
     const offers: OfferDetailDto[] = products.map((p) => ({
-      id: p.id,
-      name: p.name,
+      id: String(p.id),
+      name: p.title,
       description: p.description,
       originalPrice: Number(p.originalPrice),
       price: Number(p.price),
       quantity: p.quantity,
-      pickupDeadline: p.pickupDeadline,
-      expiryDate: p.expiryDate,
+      pickupDeadline: p.pickupEnd,
+      expiryDate: null,
     }));
 
     return {
-      id: commerce.id,
+      id: String(commerce.id),
       name: commerce.name,
       description: commerce.description,
-      address: commerce.address,
-      phone: commerce.phone,
-      isActive: commerce.isActive,
+      address: '',
+      phone: null,
+      isActive: true,
       offers,
     };
   }

@@ -7,6 +7,6 @@ export class RestaurantsController {
 
   @Get(':id/detail')
   getDetail(@Param('id') id: string) {
-    return this.commercesService.findDetail(id);
+    return this.commercesService.findDetail(+id);
   }
 }
