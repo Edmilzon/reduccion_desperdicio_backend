@@ -38,7 +38,7 @@ export class Product {
   @Column({ name: 'image_url', nullable: true })
   imageUrl: string;
 
-@Column({ name: 'pickup_start', type: 'timestamp' })
+  @Column({ name: 'pickup_start', type: 'timestamp' })
   pickupStart: Date;
 
   @Column({ name: 'pickup_end', type: 'timestamp' })

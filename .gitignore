@@ -41,6 +41,7 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
+AGENTS.md
 
 # temp directory
 .temp
@@ -57,4 +58,3 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 sk-HNphGKROtAJ5JCri4mr5W0MxkN9avGNIhxwg4IkaSYOntNoWgi8Uavj5iofRHJGg
 
-AGENTS.md

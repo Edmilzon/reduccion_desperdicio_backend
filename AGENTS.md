@@ -34,7 +34,7 @@ src/
 ├── app.service.ts
 ├── auth/                   # JWT auth module
 ├── users/                  # User entities (no controller)
-├── commerces/              # Restaurants module
+├── commerces/              # Restaurants (CommercesController + RestaurantsController)
 ├── products/               # Products/excedentes module
 └── orders/                 # Orders module
 ```
@@ -71,13 +71,15 @@ src/
 
 **Exports:** `TypeOrmModule`, `UsersService`
 
-### commerces/ — `/commerces`
+### commerces/ — `/commerces` and `/restaurants`
 
 | File | Description |
 |------|-------------|
-| `commerces.controller.ts` | CRUD + products |
-| `commerces.service.ts` | create, findAll, findOne, update, remove, findProductsByCommerce |
+| `commerces.controller.ts` | CRUD + geolocation + products |
+| `commerces.service.ts` | CRUD, Haversine distance, Nominatim geocoding |
+| `restaurants.controller.ts` | `/restaurants/:id/detail` |
 | `dto/commerce.dto.ts` | CreateCommerceDto, UpdateCommerceDto |
+| `dto/restaurant-detail.dto.ts` | RestaurantDetailDto, OfferDetailDto |
 
 **Entities:**
 - `Commerce` (table: `restaurants`) — id, owner(User), name, description, latitude, longitude, rating, imageUrl, nit
@@ -85,11 +87,14 @@ src/
 
 **Endpoints:**
 - `GET /commerces` — List all
+- `GET /commerces/nearby?lat=&lng=&radius=` — Nearby by Haversine distance
+- `GET /commerces/by-address?address=&radius=` — Nearby via Nominatim geocoding
 - `GET /commerces/:id` — Get one
 - `GET /commerces/:id/products` — Get products by commerce
 - `POST /commerces` — Create (protected)
 - `PATCH /commerces/:id` — Update (protected, owner only)
 - `DELETE /commerces/:id` — Delete (protected, owner only)
+- `GET /restaurants/:id/detail` — Detail with active offers
 
 ### products/ — `/products`
 
@@ -136,6 +141,11 @@ src/
 
 **Order flow:** Create → Decrements product quantity → If quantity=0 sets product SOLD_OUT. Cancel → Restores quantity → Sets product ACTIVE.
 
+## Git
+
+- Base branch is `develop`. Do not commit to `main` directly.
+- `AGENTS.md` is gitignored — edits stay local.
+
 ## Key Conventions
 
 - **No migrations** — `synchronize: true` + `autoLoadEntities: true`. Schema auto-syncs.
@@ -144,11 +154,11 @@ src/
 - **Prettier** — single quotes, trailing commas (`.prettierrc`).
 - **Module exports** — `UsersModule`, `CommercesModule`, `ProductsModule`, `OrdersModule` export `TypeOrmModule` for cross-module access.
 - **Ownership checks** — Commerces: owner can edit/delete own. Products: owner can edit/delete own. Stats: owner or admin.
-- **Tests** — Jest in `src/` with `*.spec.ts` pattern. Only 2 test files: `auth.service.spec.ts`, `app.controller.spec.ts`.
+- **Tests** — Jest in `src/` with `*.spec.ts` pattern. 3 test files. E2E test (`test/app.e2e-spec.ts`) expects `"Hello World!"` but app returns `"Test para Nestjs"` — it will fail.
 - **Deploy** — Vercel target (`vercel-build` runs `nest build`).
 
 ## Resources
 
 - `AUTH_FLOW.md` — Authentication flow diagrams
 - `database/` — SQL scripts (`create_database.sql`, `seed.sql`)
-- `api/*.http` — REST client files (VS Code REST Client)
+- `api/*.http` — REST client files (VS Code REST Client). Comprehensive: covers all endpoints with flows.

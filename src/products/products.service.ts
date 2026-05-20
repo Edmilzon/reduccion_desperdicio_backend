@@ -89,7 +89,9 @@ export class ProductsService {
     });
 
     const now = new Date();
-    const twoHoursFromNow = new Date(now.getTime() + NEAR_EXPIRY_HOURS * 60 * 60 * 1000);
+    const twoHoursFromNow = new Date(
+      now.getTime() + NEAR_EXPIRY_HOURS * 60 * 60 * 1000,
+    );
 
     return products.map((product) => ({
       ...product,
@@ -226,7 +228,9 @@ export class ProductsService {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(now);
     endOfDay.setHours(23, 59, 59, 999);
-    const twoHoursFromNow = new Date(now.getTime() + NEAR_EXPIRY_HOURS * 60 * 60 * 1000);
+    const twoHoursFromNow = new Date(
+      now.getTime() + NEAR_EXPIRY_HOURS * 60 * 60 * 1000,
+    );
 
     const activeOffers = await this.productRepository.count({
       where: { commerce: { id: commerceId }, status: ProductStatus.ACTIVE },
@@ -266,7 +270,8 @@ export class ProductsService {
 
     const nearExpiryOffers = await this.productRepository
       .createQueryBuilder('product')
-      .where('product.commerceId = :commerceId', { commerceId })
+      .leftJoin('product.commerce', 'commerce')
+      .where('commerce.id = :commerceId', { commerceId })
       .andWhere('product.status = :status', { status: ProductStatus.ACTIVE })
       .andWhere('product.pickupEnd IS NOT NULL')
       .andWhere('product.pickupEnd <= :twoHours', {

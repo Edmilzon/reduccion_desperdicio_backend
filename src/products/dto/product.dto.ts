@@ -3,6 +3,7 @@ import {
   IsString,
   IsOptional,
   IsNumber,
+  IsInt,
   IsDateString,
   Min,
 } from 'class-validator';
@@ -24,7 +25,7 @@ export class CreateProductDto {
   @Min(0)
   price: number;
 
-  @IsNumber({}, { message: 'La cantidad debe ser un número' })
+  @IsInt({ message: 'La cantidad debe ser un número entero' })
   @Min(1)
   quantity: number;
 
@@ -40,11 +41,11 @@ export class CreateProductDto {
   @IsNotEmpty({ message: 'La fecha de fin de recogida es obligatoria' })
   pickupEnd: string;
 
-  @IsNumber({}, { message: 'ID de comercio inválido' })
+  @IsInt({ message: 'ID de comercio inválido' })
   @IsNotEmpty({ message: 'El ID del comercio es obligatorio' })
   commerceId: number;
 
-  @IsNumber({}, { message: 'ID de categoría inválido' })
+  @IsInt({ message: 'ID de categoría inválido' })
   @IsOptional()
   categoryId?: number;
 }
@@ -68,7 +69,7 @@ export class UpdateProductDto {
   @Min(0)
   price?: number;
 
-  @IsNumber()
+  @IsInt()
   @IsOptional()
   @Min(1)
   quantity?: number;
@@ -85,12 +86,7 @@ export class UpdateProductDto {
   @IsOptional()
   pickupEnd?: string;
 
-  @IsNumber()
+  @IsInt()
   @IsOptional()
   categoryId?: number;
-  expiryDate?: string;
-
-  @IsDateString()
-  @IsOptional()
-  pickupDeadline?: string;
 }

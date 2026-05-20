@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Commerce } from '../../commerces/entities/commerce.entity';
@@ -13,15 +14,6 @@ import { Order } from '../../orders/entities/order.entity';
 export class Review {
   @PrimaryGeneratedColumn('increment', { name: 'review_id' })
   id: number;
-
-  @Column({ name: 'order_id', unique: true })
-  orderId: number;
-
-  @Column({ name: 'client_id' })
-  clientId: number;
-
-  @Column({ name: 'restaurant_id' })
-  restaurantId: number;
 
   @Column()
   stars: number;
@@ -33,11 +25,14 @@ export class Review {
   createdAt: Date;
 
   @ManyToOne(() => Order, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'order_id' })
   order: Order;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'client_id' })
   client: User;
 
   @ManyToOne(() => Commerce, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'restaurant_id' })
   commerce: Commerce;
 }

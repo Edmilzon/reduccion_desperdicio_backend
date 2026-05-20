@@ -20,7 +20,7 @@
 # Base URL: http://localhost:3000 (desarrollo)
 # Producción: https://reduccion-desperdicio-backend.vercel.app/
 
-@baseURL = https://reduccion-desperdicio-backend.vercel.app/
+@baseURL = http://localhost:3000
 @token = your_jwt_token_here
 @commerceId = 1
 @productId = 1

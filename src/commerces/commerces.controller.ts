@@ -31,19 +31,35 @@ export class CommercesController {
   }
 
   @Get('by-address')
-  findByAddress(@Query('address') address: string) {
+  findByAddress(
+    @Query('address') address: string,
+    @Query('radius') radius?: string,
+  ) {
     if (!address) {
       throw new BadRequestException('Address query parameter is required');
     }
-    return this.commerceService.findByAddress(address);
+    return this.commerceService.findByAddress(
+      address,
+      radius ? parseFloat(radius) : undefined,
+    );
   }
 
   @Get('nearby')
-  findNearby(@Query('lat') lat: string, @Query('lng') lng: string, @Query('radius') radius: string,) {
+  findNearby(
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('radius') radius: string,
+  ) {
     if (!lat || !lng) {
-      throw new BadRequestException('lat and lng query parameters are required');
+      throw new BadRequestException(
+        'lat and lng query parameters are required',
+      );
     }
-    return this.commerceService.findByCoordinates(parseFloat(lat), parseFloat(lng), radius ? parseFloat(radius) : 3,);
+    return this.commerceService.findByCoordinates(
+      parseFloat(lat),
+      parseFloat(lng),
+      radius ? parseFloat(radius) : 3,
+    );
   }
 
   @Get('list/all')

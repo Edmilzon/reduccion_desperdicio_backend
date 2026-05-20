@@ -5,8 +5,9 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, IsNull, Between } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm';
 import { Commerce } from './entities/commerce.entity';
+import { Location } from './entities/location.entity';
 import { Product, ProductStatus } from '../products/entities/product.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateCommerceDto, UpdateCommerceDto } from './dto/commerce.dto';
@@ -20,6 +21,8 @@ export class CommercesService {
   constructor(
     @InjectRepository(Commerce)
     private readonly commerceRepository: Repository<Commerce>,
+    @InjectRepository(Location)
+    private readonly locationRepository: Repository<Location>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
   ) {}
@@ -87,9 +90,8 @@ export class CommercesService {
     return { commerce, products };
   }
 
-  async findByAddress(address: string) {
+  async findByAddress(address: string, radiusKm = 3) {
     try {
-      // Usar Nominatim (OpenStreetMap) para geocodificar la dirección
       const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
       const response = await fetch(url, {
         headers: {
@@ -101,23 +103,26 @@ export class CommercesService {
         throw new Error('Error al conectar con el servicio de geolocalización');
       }
 
-      const data = await response.json();
+      const data: { lat: string; lon: string }[] = await response.json();
 
       if (!data || data.length === 0) {
-        throw new NotFoundException('No se pudo encontrar la dirección proporcionada');
+        throw new NotFoundException(
+          'No se pudo encontrar la dirección proporcionada',
+        );
       }
 
       const { lat, lon } = data[0];
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lon);
 
-      return this.findByCoordinates(latitude, longitude);
-    } catch (error: any) {
+      return this.findByCoordinates(latitude, longitude, radiusKm);
+    } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException(
-        'Error al procesar la búsqueda por dirección: ' + error.message,
+        'Error al procesar la búsqueda por dirección: ' +
+          (error as Error).message,
       );
     }
   }
@@ -129,36 +134,37 @@ export class CommercesService {
       relations: ['products'],
     });
 
-    const commercesWithDistance = commerces.map((commerce) => {
-      const now = new Date();
-      const activeProducts = (commerce.products ?? []).filter((product) => {
-        return (
-          product.status === ProductStatus.ACTIVE &&
-          Number(product.quantity) > 0 &&
-          new Date(product.pickupEnd) >= now
+    const commercesWithDistance = commerces
+      .map((commerce) => {
+        const now = new Date();
+        const activeProducts = (commerce.products ?? []).filter((product) => {
+          return (
+            product.status === ProductStatus.ACTIVE &&
+            Number(product.quantity) > 0 &&
+            new Date(product.pickupEnd) >= now
+          );
+        });
+
+        if (activeProducts.length === 0) {
+          return null;
+        }
+
+        const distance = this.calculateDistance(
+          latitude,
+          longitude,
+          Number(commerce.latitude),
+          Number(commerce.longitude),
         );
-      });
 
-      if (activeProducts.length === 0) {
-        return null;
-      }
-      
-      const distance = this.calculateDistance(
-        latitude,
-        longitude,
-        Number(commerce.latitude),
-        Number(commerce.longitude),
-      );
+        // FILTRO 3 KM ACTIVO
+        if (distance > radiusKm) {
+          return null;
+        }
 
-      // FILTRO 3 KM ACTIVO
-      if (distance > radiusKm) {
-        return null;
-      }
+        const pickupLimitDate = activeProducts
+          .map((product) => new Date(product.pickupEnd))
+          .sort((a, b) => a.getTime() - b.getTime())[0];
 
-      const pickupLimitDate = activeProducts
-        .map((product) => new Date(product.pickupEnd))
-        .sort((a, b) => a.getTime() - b.getTime())[0];
-      
         return {
           id: commerce.id,
           name: commerce.name,
@@ -170,16 +176,16 @@ export class CommercesService {
           distance: Number(distance.toFixed(1)),
           availableOffers: activeProducts.length,
           pickupLimit: pickupLimitDate
-          ? pickupLimitDate.toLocaleTimeString('es-BO', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false,
-            })
-          : null,
-      };
-    })
-    .filter((commerce) => commerce !== null)
-    .sort((a, b) => a!.distance - b!.distance);
+            ? pickupLimitDate.toLocaleTimeString('es-BO', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              })
+            : null,
+        };
+      })
+      .filter((commerce) => commerce !== null)
+      .sort((a, b) => a.distance - b.distance);
 
     // Ordenar por distancia y retornar los más cercanos primero
     return commercesWithDistance;
@@ -213,6 +219,10 @@ export class CommercesService {
       throw new NotFoundException('Restaurante no encontrado');
     }
 
+    const location = await this.locationRepository.findOne({
+      where: { restaurantId: id },
+    });
+
     const products = await this.productRepository.find({
       where: {
         commerce: { id },
@@ -236,8 +246,8 @@ export class CommercesService {
       id: String(commerce.id),
       name: commerce.name,
       description: commerce.description,
-      address: '',
-      phone: null,
+      address: location?.name ?? '',
+      phone: location?.phone ?? null,
       isActive: true,
       offers,
     };
