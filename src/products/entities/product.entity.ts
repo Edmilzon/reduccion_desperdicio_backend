@@ -38,8 +38,16 @@ export class Product {
   @Column({ name: 'image_url', nullable: true })
   imageUrl: string;
 
+<<<<<<< HEAD
   @Column({ name: 'pickup_start', type: 'timestamp' })
   pickupStart: Date;
+=======
+  @Column({ type: 'timestamp', nullable: true })
+  pickupDeadline: Date;
+
+  @Column({ default: true })
+  isActive: boolean;
+>>>>>>> origin/andres
 
   @Column({ name: 'pickup_end', type: 'timestamp' })
   pickupEnd: Date;
