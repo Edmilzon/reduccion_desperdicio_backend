@@ -9,9 +9,9 @@ NestJS 11 + TypeScript backend for "Eco Bocado" — a food waste reduction platf
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install dependencies |
-| `npm run start:dev` | Dev server with watch (port from env, defaults to 3000) |
+| `npm run start:dev` | Dev server with watch |
 | `npm run start:prod` | Production: `node dist/main` |
-| `npm run build` | Build (performs typecheck; alias: `nest build`) |
+| `npm run build` | Build (alias: `nest build`) |
 | `npm run lint` | ESLint with --fix |
 | `npm run test` | Jest unit tests (rootDir: src) |
 | `npm run test -- <file>` | Run single test file |
@@ -21,7 +21,7 @@ Always run build after changes to verify compilation.
 
 ## Environment
 
-Copy `.env.example` to `.env`. Required: `DATABASE_URL`, `JWT_SECRET` (throws on startup if missing). Optional: `JWT_EXPIRATION` (default: `24h`), `PORT` (default: 3000). PostgreSQL required.
+Copy `.env.example` to `.env`. Required: `DATABASE_URL`, `JWT_SECRET` (throws on startup if missing). Optional: `JWT_EXPIRATION` (default: `24h`), `PORT` (default: 3000, example sets 5000). PostgreSQL required.
 
 ## Source Structure
 

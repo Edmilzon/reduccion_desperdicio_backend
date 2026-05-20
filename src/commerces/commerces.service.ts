@@ -5,11 +5,15 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, IsNull } from 'typeorm';
+import { Repository, Not, IsNull, Between } from 'typeorm';
 import { Commerce } from './entities/commerce.entity';
 import { Product, ProductStatus } from '../products/entities/product.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateCommerceDto, UpdateCommerceDto } from './dto/commerce.dto';
+import {
+  RestaurantDetailDto,
+  OfferDetailDto,
+} from './dto/restaurant-detail.dto';
 
 @Injectable()
 export class CommercesService {
@@ -199,5 +203,43 @@ export class CommercesService {
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
+  }
+
+  async findDetail(id: number): Promise<RestaurantDetailDto> {
+    const commerce = await this.commerceRepository.findOne({
+      where: { id },
+    });
+    if (!commerce) {
+      throw new NotFoundException('Restaurante no encontrado');
+    }
+
+    const products = await this.productRepository.find({
+      where: {
+        commerce: { id },
+        status: ProductStatus.ACTIVE,
+      },
+      relations: ['category'],
+    });
+
+    const offers: OfferDetailDto[] = products.map((p) => ({
+      id: String(p.id),
+      name: p.title,
+      description: p.description,
+      originalPrice: Number(p.originalPrice),
+      price: Number(p.price),
+      quantity: p.quantity,
+      pickupDeadline: p.pickupEnd,
+      expiryDate: null,
+    }));
+
+    return {
+      id: String(commerce.id),
+      name: commerce.name,
+      description: commerce.description,
+      address: '',
+      phone: null,
+      isActive: true,
+      offers,
+    };
   }
 }

@@ -88,4 +88,9 @@ export class UpdateProductDto {
   @IsNumber()
   @IsOptional()
   categoryId?: number;
+  expiryDate?: string;
+
+  @IsDateString()
+  @IsOptional()
+  pickupDeadline?: string;
 }
