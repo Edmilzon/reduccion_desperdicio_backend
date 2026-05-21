@@ -25,10 +25,10 @@ export class User {
   @PrimaryGeneratedColumn('increment', { name: 'user_id' })
   id: number;
 
-  @Column({ name: 'email', unique: true })
+  @Column({ name: 'email', unique: true, nullable: true })
   email: string;
 
-  @Column({ select: false })
+  @Column({ select: false, nullable: true })
   password: string;
 
   @Column({

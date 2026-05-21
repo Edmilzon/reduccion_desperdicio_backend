@@ -47,7 +47,7 @@ export class Order {
   @Column()
   quantity: number;
 
-  @Column({ name: 'payment_method', type: 'enum', enum: PaymentMethod })
+  @Column({ name: 'payment_method', type: 'enum', enum: PaymentMethod, nullable: true })
   paymentMethod: PaymentMethod;
 
   @Column({

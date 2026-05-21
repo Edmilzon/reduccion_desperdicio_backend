@@ -10,7 +10,7 @@ export class Location {
   @Column({ name: 'restaurant_id', nullable: true })
   restaurantId: number;
 
-  @Column()
+  @Column({ nullable: true })
   name: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 8 })

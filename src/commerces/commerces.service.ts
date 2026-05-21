@@ -125,9 +125,12 @@ export class CommercesService {
     }
   }
 
-  async findByCoordinates(latitude: number, longitude: number, radiusKm = 3) {
+  async findByCoordinates(latitude: number, longitude: number, radiusKm = 0) {
     try {
-      console.log(`[findByCoordinates] lat: ${latitude}, lng: ${longitude}, radius: ${radiusKm}`);
+      const unlimited = radiusKm <= 0;
+      console.log(
+        `[findByCoordinates] lat: ${latitude}, lng: ${longitude}, radius: ${unlimited ? 'sin límite' : radiusKm}`,
+      );
       
       const locations = await this.locationRepository.find({
         where: { latitude: Not(IsNull()), longitude: Not(IsNull()) },
@@ -165,7 +168,7 @@ export class CommercesService {
             locLng,
           );
 
-          if (distance > radiusKm) {
+          if (!unlimited && distance > radiusKm) {
             return null;
           }
 

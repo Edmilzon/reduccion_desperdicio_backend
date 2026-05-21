@@ -43,7 +43,12 @@ export class CommercesController {
     if (!lat || !lng) {
       throw new BadRequestException('lat and lng query parameters are required');
     }
-    return this.commerceService.findByCoordinates(parseFloat(lat), parseFloat(lng), radius ? parseFloat(radius) : 3,);
+    const radiusKm = radius ? parseFloat(radius) : 0;
+    return this.commerceService.findByCoordinates(
+      parseFloat(lat),
+      parseFloat(lng),
+      radiusKm,
+    );
   }
 
   @Get('list/all')

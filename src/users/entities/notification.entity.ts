@@ -20,13 +20,13 @@ export class Notification {
   @Column({ name: 'user_id' })
   userId: number;
 
-  @Column()
+  @Column({ nullable: true })
   title: string;
 
   @Column({ nullable: true })
   content: string;
 
-  @Column({ type: 'enum', enum: NotificationType })
+  @Column({ type: 'enum', enum: NotificationType, nullable: true })
   type: NotificationType;
 
   @Column({ name: 'is_read', default: false })

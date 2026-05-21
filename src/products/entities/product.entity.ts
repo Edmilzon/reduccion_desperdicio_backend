@@ -21,7 +21,7 @@ export class Product {
   @PrimaryGeneratedColumn('increment', { name: 'product_excedente_id' })
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   title: string;
 
   @Column({ nullable: true })
