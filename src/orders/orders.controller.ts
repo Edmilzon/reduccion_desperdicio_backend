@@ -36,4 +36,9 @@ export class OrdersController {
   cancelOrder(@Param('id') id: string, @Request() req: AuthRequest) {
     return this.ordersService.cancelOrder(+id, req.user);
   }
+
+  @Post(':id/pay')
+  payOrder(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.ordersService.payOrder(+id, req.user);
+  }
 }

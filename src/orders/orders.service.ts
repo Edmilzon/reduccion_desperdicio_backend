@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as crypto from 'crypto';
 import {
   Order,
   OrderStatus,
@@ -13,6 +14,10 @@ import {
   DeliveryStatus,
 } from './entities/order.entity';
 import { Product, ProductStatus } from '../products/entities/product.entity';
+import {
+  Notification,
+  NotificationType,
+} from '../users/entities/notification.entity';
 import { CreateOrderDto } from './dto/order.dto';
 import { User } from '../users/entities/user.entity';
 
@@ -23,6 +28,8 @@ export class OrdersService {
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
   ) {}
 
   async create(createOrderDto: CreateOrderDto, user: User) {
@@ -30,6 +37,7 @@ export class OrdersService {
 
     const product = await this.productRepository.findOne({
       where: { id: productId },
+      relations: ['commerce'],
     });
 
     if (!product) throw new NotFoundException('Producto no encontrado');
@@ -47,6 +55,8 @@ export class OrdersService {
     }
     await this.productRepository.save(product);
 
+    const reservationCode = crypto.randomUUID();
+
     const order = this.orderRepository.create({
       product,
       buyer: user,
@@ -56,7 +66,45 @@ export class OrdersService {
       paymentStatus: PaymentStatus.PENDING,
       deliveryStatus: DeliveryStatus.PENDING,
       status: OrderStatus.CONFIRMED,
+      reservationCode,
     });
+
+    const savedOrder = await this.orderRepository.save(order);
+
+    await this.notificationRepository.save({
+      userId: user.id,
+      title: 'Reserva confirmada',
+      content: `Tu reserva en ${product.commerce.name} por ${product.title} (x${quantity}) fue confirmada. Código: ${reservationCode.slice(0, 8).toUpperCase()}. Total: Bs ${Number(product.price) * quantity}`,
+      type: NotificationType.RESERVATION_CONFIRMED,
+      user,
+    });
+
+    return this.orderRepository.findOne({
+      where: { id: savedOrder.id },
+      relations: ['product', 'product.commerce'],
+    });
+  }
+
+  async payOrder(orderId: number, user: User) {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId, buyer: { id: user.id } },
+      relations: ['product', 'product.commerce'],
+    });
+
+    if (!order) throw new NotFoundException('Orden no encontrada');
+    if (order.status === OrderStatus.CANCELLED)
+      throw new BadRequestException('No se puede pagar una orden cancelada');
+    if (order.paymentStatus === PaymentStatus.PAID)
+      throw new BadRequestException('El pedido ya fue pagado');
+    if (order.paymentMethod === PaymentMethod.CASH) {
+      throw new BadRequestException(
+        'Los pedidos en efectivo se pagan al recoger',
+      );
+    }
+
+    order.paymentStatus = PaymentStatus.PAID;
+    order.paidAt = new Date();
+    order.receiptUrl = `https://api.ecobocado.app/receipts/${order.reservationCode}`;
 
     return this.orderRepository.save(order);
   }

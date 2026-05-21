@@ -1,4 +1,11 @@
-import { IsInt, Min, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
+import {
+  IsInt,
+  Min,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { PaymentMethod } from '../entities/order.entity';
 
 export class CreateOrderDto {
@@ -13,4 +20,14 @@ export class CreateOrderDto {
   @IsEnum(PaymentMethod, { message: 'Método de pago inválido' })
   @IsOptional()
   paymentMethod?: PaymentMethod;
+}
+
+export class PayOrderDto {
+  @IsString()
+  @IsOptional()
+  paymentProvider?: string;
+
+  @IsString()
+  @IsOptional()
+  transactionId?: string;
 }

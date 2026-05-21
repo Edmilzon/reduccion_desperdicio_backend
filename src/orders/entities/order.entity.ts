@@ -72,6 +72,15 @@ export class Order {
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.CONFIRMED })
   status: OrderStatus;
 
+  @Column({ name: 'reservation_code', unique: true })
+  reservationCode: string;
+
+  @Column({ name: 'paid_at', nullable: true })
+  paidAt: Date;
+
+  @Column({ name: 'receipt_url', nullable: true })
+  receiptUrl: string;
+
   @OneToOne(() => Review, (review) => review.order)
   review: Review;
 
