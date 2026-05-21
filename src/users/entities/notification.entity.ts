@@ -26,7 +26,7 @@ export class Notification {
   @Column({ nullable: true })
   content: string;
 
-  @Column({ type: 'enum', enum: NotificationType })
+  @Column()
   type: NotificationType;
 
   @Column({ name: 'is_read', default: false })

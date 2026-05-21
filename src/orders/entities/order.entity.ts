@@ -44,32 +44,28 @@ export class Order {
   @ManyToOne(() => Product, { onDelete: 'RESTRICT' })
   product: Product;
 
-  @Column()
+  @Column({ nullable: true })
   quantity: number;
 
-  @Column({ name: 'payment_method', type: 'enum', enum: PaymentMethod })
+  @Column({ name: 'payment_method', nullable: true })
   paymentMethod: PaymentMethod;
 
   @Column({
     name: 'payment_status',
-    type: 'enum',
-    enum: PaymentStatus,
     default: PaymentStatus.PENDING,
   })
   paymentStatus: PaymentStatus;
 
   @Column({
     name: 'delivery_status',
-    type: 'enum',
-    enum: DeliveryStatus,
     default: DeliveryStatus.PENDING,
   })
   deliveryStatus: DeliveryStatus;
 
-  @Column({ name: 'total_price', type: 'decimal', precision: 10, scale: 2 })
+  @Column({ name: 'total_price', type: 'decimal', precision: 10, scale: 2, nullable: true })
   totalPrice: number;
 
-  @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.CONFIRMED })
+  @Column({ default: OrderStatus.CONFIRMED })
   status: OrderStatus;
 
   @Column({ name: 'reservation_code', unique: true, nullable: true })

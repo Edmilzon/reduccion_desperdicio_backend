@@ -32,8 +32,6 @@ export class User {
   password: string;
 
   @Column({
-    type: 'enum',
-    enum: UserRole,
     default: UserRole.CLIENT,
   })
   role: UserRole;

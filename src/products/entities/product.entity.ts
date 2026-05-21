@@ -44,7 +44,7 @@ export class Product {
   @Column({ name: 'pickup_end', type: 'timestamp' })
   pickupEnd: Date;
 
-  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.ACTIVE })
+  @Column({ default: ProductStatus.ACTIVE })
   status: ProductStatus;
 
   @ManyToOne(() => Commerce, (commerce) => commerce.products, {
