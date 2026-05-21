@@ -72,7 +72,7 @@ export class Order {
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.CONFIRMED })
   status: OrderStatus;
 
-  @Column({ name: 'reservation_code', unique: true })
+  @Column({ name: 'reservation_code', unique: true, nullable: true })
   reservationCode: string;
 
   @Column({ name: 'paid_at', nullable: true })
