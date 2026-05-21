@@ -22,6 +22,9 @@ import { OrdersModule } from './orders/orders.module';
         url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: true,
+        ssl: {
+          rejectUnauthorized: false,
+        },
       }),
     }),
     UsersModule,

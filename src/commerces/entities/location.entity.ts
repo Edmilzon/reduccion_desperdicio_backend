@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Commerce } from './commerce.entity';
 import { Product } from '../../products/entities/product.entity';
 
@@ -7,7 +7,7 @@ export class Location {
   @PrimaryGeneratedColumn('increment', { name: 'location_id' })
   id: number;
 
-  @Column({ name: 'restaurant_id' })
+  @Column({ name: 'restaurant_id', nullable: true })
   restaurantId: number;
 
   @Column()
@@ -25,7 +25,8 @@ export class Location {
   @Column({ nullable: true })
   phone: string;
 
-  @ManyToOne(() => Commerce, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Commerce, (commerce) => commerce.locations, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'restaurant_id' })
   commerce: Commerce;
 
   @OneToMany(() => Product, (product) => product.location)

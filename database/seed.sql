@@ -37,6 +37,19 @@ INSERT INTO restaurants ("ownerId", name, description, latitude, longitude, rati
 (9, 'Pizza Nostra', 'Pizza artesanal a la leña', -17.424000, -66.120000, 4.7, 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400', '30123456790'),
 (10, 'Coffee Break', 'Café de especialidad y snacks', -17.422500, -66.118500, 4.8, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400', '30123456791');
 
+-- Tabla de ubicaciones
+INSERT INTO locations ("restaurant_id", name, latitude, longitude, description, phone) VALUES
+(1, 'Panadería El Oro - Main', -12.046374, -77.042793, 'Av. Utama 123, Lima', '999-111-111'),
+(1, 'Panadería El Oro - Sucursal Centro', -12.047500, -77.041000, 'Jr. Comercio 456', '999-111-112'),
+(2, 'Delicias del Chef', -12.055473, -77.023456, 'Av. España 789, Lima', '999-222-222'),
+(3, 'Café Central', -12.038921, -77.028532, 'Plaza Mayor, Lima', '999-333-333'),
+(3, 'Café Central - Terraza', -12.038900, -77.028500, 'Plaza Mayor - Terraza', '999-333-334'),
+(4, 'Dulce Pan', -12.067891, -77.012345, 'Av. La Marina 321, Lima', '999-444-444'),
+(5, 'Sabor casero', -12.023456, -77.056789, 'Jr. Huamachuco 654, Lima', '999-555-555'),
+(6, 'Burger Street - Central', -17.423083, -66.119639, 'Calle Colombia 123, CBB', '444-111-111'),
+(7, 'Pizza Nostra - Plaza', -17.424000, -66.120000, 'Av. Ballivian 456, CBB', '444-222-222'),
+(8, 'Coffee Break - Recoleta', -17.422500, -66.118500, 'Av. Pando 789, CBB', '444-333-333');
+
 -- Tabla de productos excedentes
 INSERT INTO product_excedente ("commerceId", "locationId", "categoryId", title, description, original_price, discount_price, quantity, image_url, pickup_start, pickup_end, status) VALUES
 (1, 1, 1, 'Pan Francés', 'Pan francés recién horneado', 2.50, 1.25, 30, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200', '2026-05-01 08:00:00', '2026-05-01 14:00:00', 'active'),
@@ -60,20 +73,10 @@ INSERT INTO product_excedente ("commerceId", "locationId", "categoryId", title, 
 (5, 7, 7, 'Arroz con Pollo', 'Arroz con pollo y ensalada', 10.00, 5.00, 8, 'https://images.unsplash.com/photo-1567620900862-93b6b94369aa?w=200', '2026-05-01 11:30:00', '2026-05-01 14:30:00', 'active'),
 (5, 7, 7, 'Seco de Res', 'Seco de res con frejoles', 12.00, 6.00, 6, 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200', '2026-05-01 12:00:00', '2026-05-01 15:00:00', 'active'),
 (5, 7, 7, 'Causa', 'Causa limeña rellena', 9.00, 4.50, 5, 'https://images.unsplash.com/photo-1626645738196-c2a72c7c8e38?w=200', '2026-05-01 12:30:00', '2026-05-01 16:00:00', 'active'),
-(5, 7, 5, 'Fruta del día', 'Fruta variada picadita', 5.00, 2.50, 10, 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=200', '2026-05-01 09:00:00', '2026-05-01 14:00:00', 'active');
-
--- Tabla de ubicaciones
-INSERT INTO locations ("restaurant_id", name, latitude, longitude, description, phone) VALUES
-(1, 'Panadería El Oro - Main', -12.046374, -77.042793, 'Av. Utama 123, Lima', '999-111-111'),
-(1, 'Panadería El Oro - Sucursal Centro', -12.047500, -77.041000, 'Jr. Comercio 456', '999-111-112'),
-(2, 'Delicias del Chef', -12.055473, -77.023456, 'Av. España 789, Lima', '999-222-222'),
-(3, 'Café Central', -12.038921, -77.028532, 'Plaza Mayor, Lima', '999-333-333'),
-(3, 'Café Central - Terraza', -12.038900, -77.028500, 'Plaza Mayor - Terraza', '999-333-334'),
-(4, 'Dulce Pan', -12.067891, -77.012345, 'Av. La Marina 321, Lima', '999-444-444'),
-(5, 'Sabor casero', -12.023456, -77.056789, 'Jr. Huamachuco 654, Lima', '999-555-555'),
-(6, 'Burger Street - Central', -17.423083, -66.119639, 'Calle Colombia 123, CBB', '444-111-111'),
-(7, 'Pizza Nostra - Plaza', -17.424000, -66.120000, 'Av. Ballivian 456, CBB', '444-222-222'),
-(8, 'Coffee Break - Recoleta', -17.422500, -66.118500, 'Av. Pando 789, CBB', '444-333-333');
+(5, 7, 5, 'Fruta del día', 'Fruta variada picadita', 5.00, 2.50, 10, 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=200', '2026-05-01 09:00:00', '2026-05-01 14:00:00', 'active'),
+(6, 8, 4, 'Burger Master', 'Hamburguesa doble con queso', 45.00, 22.50, 5, 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200', '2026-05-01 19:00:00', '2026-05-01 22:00:00', 'active'),
+(7, 9, 7, 'Pizza Familiar', 'Pizza pepperoni familiar', 80.00, 40.00, 3, 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200', '2026-05-01 18:00:00', '2026-05-01 21:00:00', 'active'),
+(8, 10, 3, 'Combo Desayuno', 'Café + Croissant', 35.00, 17.50, 10, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200', '2026-05-01 07:00:00', '2026-05-01 10:30:00', 'active');
 
 -- Tabla de perfiles
 INSERT INTO profiles (user_id, full_name, phone, avatar_url) VALUES
