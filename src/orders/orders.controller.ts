@@ -32,6 +32,19 @@ export class OrdersController {
     return this.ordersService.findMyOrders(req.user);
   }
 
+  @Get('merchant')
+  findMerchantOrders(@Request() req: AuthRequest) {
+    return this.ordersService.findMerchantOrders(req.user);
+  }
+  
+  @Patch(':id/mark-paid-delivered')
+  markAsPaidAndDelivered(
+    @Param('id') id: string,
+    @Request() req: AuthRequest,
+  ) {
+    return this.ordersService.markAsPaidAndDelivered(+id, req.user);
+  }
+
   @Patch(':id/cancel')
   cancelOrder(@Param('id') id: string, @Request() req: AuthRequest) {
     return this.ordersService.cancelOrder(+id, req.user);
