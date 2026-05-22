@@ -1,24 +1,63 @@
-@baseURL = http://localhost:3000
-@token = your_jwt_token_here
+@baseURL = http://localhost:5000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIwLCJlbWFpbCI6ImNvbWVyY2lhbnRlX3Rlc3RfMTc3OTQ4ODYwNEB0ZXN0LmNvbSIsInJvbGUiOiJtZXJjaGFudCIsImlhdCI6MTc3OTQ4ODYwOCwiZXhwIjoxNzc5NTc1MDA4fQ.yENiTVhCTwsrnAsoAeR9144iGJPsPkKjS3u66hX9XW0
 @commerceId = 1
+
+# ────────────────────────────────────────────
+# FLUJO DE COMERCIOS / RESTAURANTES
+# ────────────────────────────────────────────
+#
+# ENDPOINTS PÚBLICOS (GET):
+#   • GET /commerces          → lista completa con owner
+#   • GET /commerces/list/all → solo id + name (para selects)
+#   • GET /commerces/nearby   → filtro por distancia (Haversine)
+#   • GET /commerces/by-address → geocodifica con Nominatim + distancia
+#   • GET /commerces/:id      → un comercio
+#   • GET /commerces/:id/products → productos activos de ese comercio
+#   • GET /restaurants/:id/detail → detalle completo con ofertas activas
+#
+# ENDPOINTS PROTEGIDOS (requieren JWT):
+#   • POST   /commerces       → crear (cualquier usuario autenticado)
+#   • PATCH  /commerces/:id   → actualizar (solo owner)
+#   • DELETE /commerces/:id   → eliminar (solo owner, físico)
+#
+# ────────────────────────────────────────────
 
 ### Listar todos los comercios (con owner)
 GET {{baseURL}}/commerces
+# 200 → [ { id, name, description, latitude, longitude, rating, imageUrl, nit,
+#           owner: { id, email }, locations: [...], createdAt, updatedAt } ]
 
-### Listar solo IDs y nombres
+### Listar solo IDs y nombres (para combos/selects)
 GET {{baseURL}}/commerces/list/all
+# 200 → [ { id, name } ]
 
-### Buscar comercios cercanos por coordenadas (radius default 3km)
+### Buscar comercios cercanos por coordenadas (Haversine, radius en km)
 GET {{baseURL}}/commerces/nearby?lat=-16.5&lng=-68.15&radius=5
+# 200 → [ { id, name, latitude, longitude, rating, imageUrl, distance (en km) } ]
+# Si no se envía radius, usa 0 km (solo coordenadas exactas)
+# Errores:
+#   400 → faltan lat/lng
 
-### Buscar comercios cercanos por dirección (usa Nominatim)
+### Buscar comercios cercanos por dirección (usa Nominatim para geocodificar)
 GET {{baseURL}}/commerces/by-address?address=La Paz, Bolivia&radius=5
+# 200 → [ { id, name, latitude, longitude, ... } ]
+# Interno: geocodifica address → coordenadas → Haversine
+# Errores:
+#   400 → falta address
+#   404 → no se pudo geocodificar la dirección
 
 ### Obtener comercio por ID
 GET {{baseURL}}/commerces/{{commerceId}}
+# 200 → { id, name, description, latitude, longitude, rating, imageUrl, nit,
+#         owner: { id, email, role }, locations: [...], products: [...],
+#         createdAt, updatedAt }
+# Errores:
+#   404 → commerce no encontrado
 
 ### Productos activos de un comercio
 GET {{baseURL}}/commerces/{{commerceId}}/products
+# 200 → [ { id, title, price, originalPrice, quantity, imageUrl, status, ... } ]
+# Solo productos con status = "active"
 
 ### Crear comercio (requiere auth)
 POST {{baseURL}}/commerces
@@ -32,7 +71,11 @@ Content-Type: application/json
   "longitude": -68.15,
   "nit": "12345678"
 }
-# Respuesta: commerce object
+# 201 → { id, name, description, latitude, longitude, rating, imageUrl, nit,
+#         owner: { id, email }, createdAt, updatedAt }
+# Errores:
+#   401 → no autenticado
+#   400 → validación de campos
 
 ### Actualizar comercio (solo owner)
 PATCH {{baseURL}}/commerces/{{commerceId}}
@@ -43,11 +86,27 @@ Content-Type: application/json
   "name": "Tienda Actualizada",
   "description": "Nueva descripción"
 }
-# Respuesta: commerce object actualizado
+# 200 → commerce object actualizado
+# Errores:
+#   401 → no autenticado
+#   403 → no eres el owner del comercio
+#   404 → commerce no encontrado
 
-### Eliminar comercio (solo owner, eliminación física)
+### Eliminar comercio (solo owner, eliminación física en cascada)
 DELETE {{baseURL}}/commerces/{{commerceId}}
 Authorization: Bearer {{token}}
+# 200 → { message: "Comercio eliminado correctamente" }
+# Errores:
+#   401 → no autenticado
+#   403 → no eres el owner
+#   404 → commerce no encontrado
 
 ### Detalle completo de restaurante con ofertas activas
 GET {{baseURL}}/restaurants/{{commerceId}}/detail
+# 200 → { id, name, description, latitude, longitude, rating, imageUrl, nit,
+#         owner: { id, email, name },
+#         locations: [ { id, name, latitude, longitude, description, phone } ],
+#         offers: [ { id, title, price, originalPrice, quantity, imageUrl,
+#                    pickupStart, pickupEnd, status } ],
+#         createdAt, updatedAt }
+# offers = productos activos con pickup_end >= ahora

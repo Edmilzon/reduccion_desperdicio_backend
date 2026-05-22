@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -189,11 +190,8 @@ export class OrdersService {
     .leftJoinAndSelect('product.commerce', 'commerce')
     .leftJoinAndSelect('commerce.owner', 'owner')
     .leftJoinAndSelect('order.buyer', 'buyer')
-    .where('commerce.owner_id = :ownerId', { ownerId: user.id })
-    .andWhere('order.paymentMethod = :paymentMethod', {
-      paymentMethod: PaymentMethod.CASH,
-    })
-    .orderBy('order.created_at', 'DESC')
+    .where('owner.id = :ownerId', { ownerId: user.id })
+    .orderBy('order.createdAt', 'DESC')
     .getMany();
 
   return orders.map((order) => this.mapOrderResponse(order));
@@ -208,7 +206,7 @@ async markAsPaidAndDelivered(orderId: number, user: User) {
     throw new NotFoundException('Orden no encontrada');
   }
   if (order.product.commerce.owner.id !== user.id) {
-    throw new BadRequestException(
+    throw new ForbiddenException(
       'No tienes permiso para actualizar este pedido',
     );
   }

@@ -243,12 +243,16 @@ export class ProductsService {
       },
     });
 
-    const todayOrdersCount = await this.orderRepository.count({
-      where: {
-        product: { commerce: { id: commerceId } },
-        createdAt: Between(startOfDay, endOfDay),
-      },
-    });
+    const todayOrdersCount = await this.orderRepository
+      .createQueryBuilder('order')
+      .innerJoin('order.product', 'product')
+      .innerJoin('product.commerce', 'commerce')
+      .where('commerce.id = :commerceId', { commerceId })
+      .andWhere('order.createdAt BETWEEN :start AND :end', {
+        start: startOfDay,
+        end: endOfDay,
+      })
+      .getCount();
 
     interface SalesResult {
       totalSales: string | null;

@@ -82,6 +82,7 @@ export class ProductsController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('commerce/:commerceId/stats')
   getCommerceStats(
     @Param('commerceId') commerceId: string,
