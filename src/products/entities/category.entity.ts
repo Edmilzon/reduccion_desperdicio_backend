@@ -13,10 +13,10 @@ export class Category {
   @PrimaryGeneratedColumn('increment', { name: 'category_id' })
   id: number;
 
-  @Column({ nullable: true })
+  @Column()
   name: string;
 
-  @Column({ unique: true, nullable: true })
+  @Column({ unique: true })
   slug: string;
 
   @OneToMany(() => Product, (product) => product.category)

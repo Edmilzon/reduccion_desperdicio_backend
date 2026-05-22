@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Commerce } from '../../commerces/entities/commerce.entity';
 import { Location } from '../../commerces/entities/location.entity';
@@ -51,17 +52,20 @@ export class Product {
   @ManyToOne(() => Commerce, (commerce) => commerce.products, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'commerceId' })
   commerce: Commerce;
 
   @ManyToOne(() => Location, (location) => location.products, {
     onDelete: 'CASCADE',
     nullable: true,
   })
+  @JoinColumn({ name: 'locationId' })
   location: Location;
 
   @ManyToOne(() => Category, (category) => category.products, {
     onDelete: 'RESTRICT',
   })
+  @JoinColumn({ name: 'categoryId' })
   category: Category;
 
   @CreateDateColumn({ name: 'created_at' })

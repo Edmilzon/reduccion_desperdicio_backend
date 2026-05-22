@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Product } from '../../products/entities/product.entity';
@@ -18,6 +19,7 @@ export class Commerce {
   id: number;
 
   @ManyToOne(() => User, (user) => user.comercios, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'ownerId' })
   owner: User;
 
   @Column({ nullable: true })

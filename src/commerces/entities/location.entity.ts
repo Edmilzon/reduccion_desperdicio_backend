@@ -7,7 +7,7 @@ export class Location {
   @PrimaryGeneratedColumn('increment', { name: 'location_id' })
   id: number;
 
-  @Column({ name: 'restaurant_id', nullable: true })
+  @Column({ name: 'restaurant_id' })
   restaurantId: number;
 
   @Column({ nullable: true })

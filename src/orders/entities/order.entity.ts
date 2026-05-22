@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
 import { User } from '../../users/entities/user.entity';
@@ -40,9 +41,11 @@ export class Order {
   id: number;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'buyerId' })
   buyer: User;
 
   @ManyToOne(() => Product, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'productId' })
   product: Product;
 
   @Column({ nullable: true })
