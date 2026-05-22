@@ -26,6 +26,7 @@ export enum DeliveryStatus {
   PENDING = 'pending',
   DELIVERED = 'delivered',
   QR_CODE_VALIDATION = 'qr_code_validation',
+  NOT_PICKED_UP = 'not_picked_up',
 }
 
 export enum OrderStatus {
@@ -47,7 +48,7 @@ export class Order {
   @Column({ nullable: true })
   quantity: number;
 
-  @Column({ name: 'payment_method', nullable: true })
+  @Column({ name: 'payment_method', default: PaymentMethod.CASH, nullable: true })
   paymentMethod: PaymentMethod;
 
   @Column({

@@ -57,12 +57,14 @@ export class OrdersService {
 
     const reservationCode = crypto.randomUUID();
 
+    const selectedPaymentMethod = paymentMethod || PaymentMethod.CASH;
+
     const order = this.orderRepository.create({
       product,
       buyer: user,
       quantity,
       totalPrice: Number(product.price) * quantity,
-      paymentMethod: paymentMethod || PaymentMethod.CASH,
+      paymentMethod: selectedPaymentMethod,
       paymentStatus: PaymentStatus.PENDING,
       deliveryStatus: DeliveryStatus.PENDING,
       status: OrderStatus.CONFIRMED,
@@ -79,10 +81,12 @@ export class OrdersService {
       user: { id: user.id } as User,
     });
 
-    return this.orderRepository.findOne({
+    const fullOrder = await this.orderRepository.findOne({
       where: { id: savedOrder.id },
-      relations: ['product', 'product.commerce'],
+      relations: ['product', 'product.commerce', 'buyer'],
     });
+    
+    return this.mapOrderResponse(fullOrder!);
   }
 
   async payOrder(orderId: number, user: User) {
@@ -110,11 +114,14 @@ export class OrdersService {
   }
 
   async findMyOrders(user: User) {
-    return this.orderRepository.find({
+    await this.markExpiredOrdersAsNotPickedUp();
+    const orders = await this.orderRepository.find({
       where: { buyer: { id: user.id } },
-      relations: ['product', 'product.commerce'],
+      relations: ['product', 'product.commerce', 'buyer'],
       order: { createdAt: 'DESC' },
     });
+
+    return orders.map((order) => this.mapOrderResponse(order));
   }
 
   async cancelOrder(orderId: number, user: User) {
@@ -134,4 +141,119 @@ export class OrdersService {
     order.status = OrderStatus.CANCELLED;
     return this.orderRepository.save(order);
   }
+
+  private mapOrderResponse(order: Order) {
+    return {
+      id: order.id,
+      reservationCode: order.reservationCode,
+      quantity: order.quantity,
+      totalPrice: Number(order.totalPrice),
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      deliveryStatus: order.deliveryStatus,
+      status: order.status,
+      paidAt: order.paidAt,
+      createdAt: order.createdAt,
+      product: order.product
+        ? {
+            id: order.product.id,
+            title: order.product.title,
+            description: order.product.description,
+            price: Number(order.product.price),
+            imageUrl: order.product.imageUrl,
+            pickupStart: order.product.pickupStart,
+            pickupEnd: order.product.pickupEnd,
+            commerce: order.product.commerce
+              ? {
+                  id: order.product.commerce.id,
+                  name: order.product.commerce.name,
+                }
+              : null,
+          }
+        : null,
+      buyer: order.buyer
+        ? {
+            id: order.buyer.id,
+            email: order.buyer.email,
+          }
+        : null,
+    };
+  }
+
+  async findMerchantOrders(user: User) {
+  await this.markExpiredOrdersAsNotPickedUp();
+
+  const orders = await this.orderRepository
+    .createQueryBuilder('order')
+    .leftJoinAndSelect('order.product', 'product')
+    .leftJoinAndSelect('product.commerce', 'commerce')
+    .leftJoinAndSelect('commerce.owner', 'owner')
+    .leftJoinAndSelect('order.buyer', 'buyer')
+    .where('commerce.owner_id = :ownerId', { ownerId: user.id })
+    .andWhere('order.paymentMethod = :paymentMethod', {
+      paymentMethod: PaymentMethod.CASH,
+    })
+    .orderBy('order.created_at', 'DESC')
+    .getMany();
+
+  return orders.map((order) => this.mapOrderResponse(order));
+}
+
+async markAsPaidAndDelivered(orderId: number, user: User) {
+  const order = await this.orderRepository.findOne({
+    where: { id: orderId },
+    relations: ['product', 'product.commerce', 'product.commerce.owner', 'buyer'],
+  });
+  if (!order) {
+    throw new NotFoundException('Orden no encontrada');
+  }
+  if (order.product.commerce.owner.id !== user.id) {
+    throw new BadRequestException(
+      'No tienes permiso para actualizar este pedido',
+    );
+  }
+  if (order.paymentMethod !== PaymentMethod.CASH) {
+    throw new BadRequestException(
+      'Solo los pedidos con pago en sucursal pueden marcarse manualmente',
+    );
+  }
+  if (order.deliveryStatus === DeliveryStatus.NOT_PICKED_UP) {
+    throw new BadRequestException(
+      'No se puede entregar un pedido marcado como no recogido',
+    );
+  }
+  if (order.status === OrderStatus.CANCELLED) {
+    throw new BadRequestException(
+      'No se puede entregar una orden cancelada',
+    );
+  }
+  order.paymentStatus = PaymentStatus.PAID;
+  order.deliveryStatus = DeliveryStatus.DELIVERED;
+  order.paidAt = new Date();
+
+  const savedOrder = await this.orderRepository.save(order);
+  return this.mapOrderResponse(savedOrder);
+}
+
+async markExpiredOrdersAsNotPickedUp() {
+  const now = new Date();
+
+  const orders = await this.orderRepository.find({
+    where: {
+      status: OrderStatus.CONFIRMED,
+      deliveryStatus: DeliveryStatus.PENDING,
+      paymentMethod: PaymentMethod.CASH,
+    },
+    relations: ['product'],
+  });
+
+  const expiredOrders = orders.filter((order) => {
+    return order.product?.pickupEnd && new Date(order.product.pickupEnd) < now;
+  });
+
+  for (const order of expiredOrders) {
+    order.deliveryStatus = DeliveryStatus.NOT_PICKED_UP;
+    await this.orderRepository.save(order);
+  }
+}
 }
