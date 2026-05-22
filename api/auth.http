@@ -1,68 +1,18 @@
-# ============================================
-# AUTH - Autenticación (Eco Bocado)
-# ============================================
-# Endpoints de autenticación y registro.
-#
-# Roles disponibles: client (default), merchant, admin
-# Autenticación: JWT Bearer token en header Authorization
-#
-# Base URL: http://localhost:3000
+@baseURL = http://localhost:5000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjgsImVtYWlsIjoiZWRtaWx6b24ubHVuYUBnbWFpbC5jb20iLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzc5NDUwOTIxLCJleHAiOjE3Nzk1MzczMjF9.YpYVQCpuZkmcL6pn3XSPDwbuFvQLPTXZssAVKVVp6vE
 
-@baseURL = http://localhost:3000
-@token = your_jwt_token_here
-
-# ============================================
-# POST /auth/register
-# ----------------------------------
-# Descripción: Registra un nuevo usuario (rol CLIENT por defecto).
-# Autenticación: No requerida.
-# Body (JSON):
-#   {
-#     "name": "Juan Pérez",      // OBLIGATORIO - Nombre completo
-#     "email": "user@mail.com",  // OBLIGATORIO - Email único
-#     "password": "123456",      // OBLIGATORIO - Mínimo 6 caracteres
-#     "role": "client"           // OPCIONAL - "client" | "merchant" | "admin" (default: client)
-#   }
-# Respuesta (201):
-#   {
-#     "user": { "id": 1, "email": "user@mail.com", "role": "client", "name": "Juan Pérez" },
-#     "access_token": "eyJhbGciOiJIUzI1NiIs..."
-#   }
-
-###
+### Registrar cliente (rol CLIENT por defecto)
 POST {{baseURL}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "Juan Pérez",
-  "email": "cliente@example.com",
-  "password": "123456"
+  "name": "Edmilzon Luna",
+  "email": "edmilzon.luna@gmail.com",
+  "password": "Edmilzon_890"
 }
+# Respuesta: { user: { id, email, role, name }, access_token }
 
-# ============================================
-# POST /auth/register-commerce
-# ----------------------------------
-# Descripción: Registra un comerciante (rol MERCHANT) y crea su comercio.
-# Autenticación: No requerida.
-# Body (JSON):
-#   {
-#     "ownerName": "Juan Perez",     // OBLIGATORIO
-#     "email": "tienda@mail.com",    // OBLIGATORIO
-#     "password": "password123",     // OBLIGATORIO - Mínimo 6 caracteres
-#     "commerceName": "Mi Tienda",   // OBLIGATORIO
-#     "description": "Descripción",  // OPCIONAL
-#     "latitude": -16.5,            // OPCIONAL
-#     "longitude": -68.15,          // OPCIONAL
-#     "nit": "123456789"            // OPCIONAL
-#   }
-# Respuesta (201):
-#   {
-#     "user": { "id": 1, "email": "tienda@mail.com", "role": "merchant", "name": "Juan Perez" },
-#     "commerce": { "id": 1, "name": "Mi Tienda" },
-#     "access_token": "eyJhbGciOiJIUzI1NiIs..."
-#   }
-
-###
+### Registrar comerciante (rol MERCHANT + crea comercio)
 POST {{baseURL}}/auth/register-commerce
 Content-Type: application/json
 
@@ -76,64 +26,24 @@ Content-Type: application/json
   "longitude": -68.15,
   "nit": "123456789"
 }
+# Respuesta: { user: { id, email, role, name }, commerce: { id, name }, access_token }
 
-# ============================================
-# POST /auth/login
-# ----------------------------------
-# Descripción: Inicia sesión. Si el usuario es MERCHANT, incluye datos del comercio.
-# Autenticación: No requerida.
-# Body (JSON):
-#   {
-#     "email": "user@mail.com",    // OBLIGATORIO
-#     "password": "123456"         // OBLIGATORIO
-#   }
-# Respuesta (200):
-#   {
-#     "user": { "id": 1, "email": "user@mail.com", "name": "Juan Pérez", "role": "client" },
-#     "access_token": "eyJhbGciOiJIUzI1NiIs..."
-#     // Si role = merchant, incluye:
-#     // "commerce": { "id": 1, "name": "Mi Tienda" }
-#   }
-# Error:
-#   401 - Credenciales inválidas
-
-###
+### Iniciar sesión (MERCHANT incluye datos del comercio)
 POST {{baseURL}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "cliente@example.com",
-  "password": "123456"
+  "email": "edmilzon.luna@gmail.com",
+  "password": "Edmilzon_890"
 }
+# Respuesta: { user: { id, email, name, role }, access_token }
 
-# ============================================
-# GET /auth/me
-# ----------------------------------
-# Descripción: Obtiene el perfil del usuario autenticado.
-#              Si es MERCHANT, incluye datos del comercio asociado.
-# Autenticación: REQUERIDA - Bearer token.
-# Respuesta (200):
-#   {
-#     "user": { "id": 1, "email": "user@mail.com", "name": "Juan Pérez", "role": "client" }
-#     // Si role = merchant, incluye:
-#     // "commerce": { "id": 1, "name": "Mi Tienda" }
-#   }
-
-###
+### Obtener perfil del usuario autenticado (MERCHANT incluye comercio)
 GET {{baseURL}}/auth/me
 Authorization: Bearer {{token}}
+# Respuesta: { user: { id, email, name, role } } (+ commerce si MERCHANT)
 
-# ============================================
-# POST /auth/logout
-# ----------------------------------
-# Descripción: Cierra sesión. El JWT es stateless, solo indica al cliente
-#              que debe eliminar el token localmente.
-# Autenticación: REQUERIDA - Bearer token.
-# Respuesta (200):
-#   {
-#     "message": "Sesión cerrada exitosamente. Asegúrese de eliminar el token en el cliente."
-#   }
-
-###
+### Cerrar sesión (solo indica al cliente eliminar token local)
 POST {{baseURL}}/auth/logout
 Authorization: Bearer {{token}}
+# Respuesta: { message }

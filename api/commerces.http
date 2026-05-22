@@ -1,57 +1,26 @@
-# ============================================
-# COMMERCES - Comercios
-# ============================================
-# Gestión de comercios.
-#
-# Base URL: http://localhost:3000
-
 @baseURL = http://localhost:3000
 @token = your_jwt_token_here
 @commerceId = 1
 
-# ============================================
-# GET - CONSULTAS PÚBLICAS
-# ============================================
-
 ### Listar todos los comercios (con owner)
 GET {{baseURL}}/commerces
 
-### Listar solo IDs y nombres (lightweight)
+### Listar solo IDs y nombres
 GET {{baseURL}}/commerces/list/all
 
-### Buscar comercios cercanos por coordenadas
-### radius: opcional (default: 3km)
+### Buscar comercios cercanos por coordenadas (radius default 3km)
 GET {{baseURL}}/commerces/nearby?lat=-16.5&lng=-68.15&radius=5
 
 ### Buscar comercios cercanos por dirección (usa Nominatim)
-### radius: opcional (default: 3km)
 GET {{baseURL}}/commerces/by-address?address=La Paz, Bolivia&radius=5
 
 ### Obtener comercio por ID
 GET {{baseURL}}/commerces/{{commerceId}}
 
-### Obtener productos activos de un comercio
+### Productos activos de un comercio
 GET {{baseURL}}/commerces/{{commerceId}}/products
 
-# ============================================
-# POST /commerces
-# ----------------------------------
-# Descripción: Crea un nuevo comercio.
-# Autenticación: REQUERIDA - Bearer token.
-# Body (JSON):
-#   {
-#     "name": "Mi Tienda",         // OBLIGATORIO
-#     "description": "Descripción",  // OPCIONAL
-#     "latitude": -16.5,           // OPCIONAL
-#     "longitude": -68.15,         // OPCIONAL
-#     "rating": 4.5,              // OPCIONAL
-#     "imageUrl": "https://...",  // OPCIONAL
-#     "nit": "12345678"           // OPCIONAL - NIT del comercio
-#   }
-# Headers:
-#   Authorization: Bearer <token>
-
-###
+### Crear comercio (requiere auth)
 POST {{baseURL}}/commerces
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -63,14 +32,9 @@ Content-Type: application/json
   "longitude": -68.15,
   "nit": "12345678"
 }
+# Respuesta: commerce object
 
-# ============================================
-# PATCH /commerces/:id
-# ----------------------------------
-# Descripción: Actualiza un comercio.
-# Autenticación: REQUERIDA - Solo el owner.
-
-###
+### Actualizar comercio (solo owner)
 PATCH {{baseURL}}/commerces/{{commerceId}}
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -79,21 +43,11 @@ Content-Type: application/json
   "name": "Tienda Actualizada",
   "description": "Nueva descripción"
 }
+# Respuesta: commerce object actualizado
 
-# ============================================
-# DELETE /commerces/:id
-# ----------------------------------
-# Descripción: Elimina un comercio.
-# Autenticación: REQUERIDA - Solo el owner.
-# Nota: Eliminación física (no lógica).
-
-###
+### Eliminar comercio (solo owner, eliminación física)
 DELETE {{baseURL}}/commerces/{{commerceId}}
 Authorization: Bearer {{token}}
 
-# ============================================
-# RESTAURANTS - Detalle de restaurante
-# ============================================
-
-### Obtener detalle completo con ofertas activas
+### Detalle completo de restaurante con ofertas activas
 GET {{baseURL}}/restaurants/{{commerceId}}/detail

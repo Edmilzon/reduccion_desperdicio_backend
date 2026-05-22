@@ -22,12 +22,4 @@ export class CreateOrderDto {
   paymentMethod?: PaymentMethod;
 }
 
-export class PayOrderDto {
-  @IsString()
-  @IsOptional()
-  paymentProvider?: string;
 
-  @IsString()
-  @IsOptional()
-  transactionId?: string;
-}

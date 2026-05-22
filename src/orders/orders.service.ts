@@ -76,7 +76,7 @@ export class OrdersService {
       title: 'Reserva confirmada',
       content: `Tu reserva en ${product.commerce.name} por ${product.title} (x${quantity}) fue confirmada. Código: ${reservationCode.slice(0, 8).toUpperCase()}. Total: Bs ${Number(product.price) * quantity}`,
       type: NotificationType.RESERVATION_CONFIRMED,
-      user,
+      user: { id: user.id } as User,
     });
 
     return this.orderRepository.findOne({
