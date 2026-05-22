@@ -55,10 +55,11 @@ export class CommercesController {
         'lat and lng query parameters are required',
       );
     }
+    const radiusKm = radius ? parseFloat(radius) : 0;
     return this.commerceService.findByCoordinates(
       parseFloat(lat),
       parseFloat(lng),
-      radius ? parseFloat(radius) : 3,
+      radiusKm,
     );
   }
 

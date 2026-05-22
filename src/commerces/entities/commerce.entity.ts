@@ -20,7 +20,7 @@ export class Commerce {
   @ManyToOne(() => User, (user) => user.comercios, { onDelete: 'CASCADE' })
   owner: User;
 
-  @Column()
+  @Column({ nullable: true })
   name: string;
 
   @Column({ nullable: true })

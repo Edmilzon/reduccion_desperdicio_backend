@@ -8,6 +8,9 @@ INSERT INTO users (email, password, role, reset_token) VALUES
 ('panaderia@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
 ('restaurante@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
 ('cafeteria@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
+('burger@cbb.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
+('pizza@cbb.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
+('coffee@cbb.com', '$2a$10$xYwZfakeHashForDemo123456789', 'merchant', NULL),
 ('cliente1@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'client', NULL),
 ('cliente2@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'client', NULL),
 ('cliente3@ejemplo.com', '$2a$10$xYwZfakeHashForDemo123456789', 'client', NULL);
@@ -29,32 +32,10 @@ INSERT INTO restaurants ("ownerId", name, description, latitude, longitude, rati
 (3, 'Delicias del Chef', 'Restaurante con comida casera y platillos del día', -12.055473, -77.023456, 4.5, 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400', '20123456790'),
 (4, 'Café Central', 'Café espresso, repostería y desayunos', -12.038921, -77.028532, 4.7, 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400', '20123456791'),
 (5, 'Dulce Pan', 'Pasteles, tartas y panes dulces', -12.067891, -77.012345, 4.6, 'https://images.unsplash.com/photo-1486427944544-d2c6128e4612?w=400', '20123456792'),
-(6, 'Sabor casero', 'Comida peruano tradicional', -12.023456, -77.056789, 4.3, 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400', '20123456793');
-
--- Tabla de productos excedentes
-INSERT INTO product_excedente ("commerceId", "categoryId", title, description, original_price, discount_price, quantity, image_url, pickup_start, pickup_end, status) VALUES
-(1, 1, 'Pan Francés', 'Pan francés recién horneado', 2.50, 1.25, 30, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200', '2026-05-01 08:00:00', '2026-05-01 14:00:00', 'active'),
-(1, 1, 'Conchas', 'Conchas de chocolate y vainilla', 3.00, 1.50, 20, 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200', '2026-05-01 09:00:00', '2026-05-01 15:00:00', 'active'),
-(1, 1, 'Bolillos', 'Bolillos integrales', 1.80, 0.90, 25, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200', '2026-05-01 07:00:00', '2026-05-01 13:00:00', 'active'),
-(1, 2, 'Cupcakes', 'Cupcakes de vainilla con frosting', 4.50, 2.25, 15, 'https://images.unsplash.com/photo-1486427944544-d2c6128e4612?w=200', '2026-05-01 10:00:00', '2026-05-01 16:00:00', 'active'),
-(1, 2, 'Brownies', 'Brownies de chocolate', 3.50, 1.75, 12, 'https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=200', '2026-05-01 11:00:00', '2026-05-01 17:00:00', 'active'),
-(2, 7, 'Menú del Día', 'Pollo a la olla con arroz y ensalada', 12.00, 6.00, 10, 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200', '2026-05-01 12:00:00', '2026-05-01 15:00:00', 'active'),
-(2, 7, 'Ceviche', 'Ceviche de pescado fresco', 15.00, 7.50, 8, 'https://images.unsplash.com/photo-1535399831218-d5bd36d1a6b3?w=200', '2026-05-01 11:00:00', '2026-05-01 14:00:00', 'active'),
-(2, 7, 'Lomo Saltado', 'Lomo saltado con papas fritas', 14.00, 7.00, 6, 'https://images.unsplash.com/photo-1600891964092-4316c288032e?w=200', '2026-05-01 12:30:00', '2026-05-01 16:00:00', 'active'),
-(2, 5, 'Ensalada Mixta', 'Ensalada con pollo y aderezo', 8.00, 4.00, 5, 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200', '2026-05-01 13:00:00', '2026-05-01 18:00:00', 'active'),
-(3, 3, 'Café Latte', 'Café latte con leche', 5.00, 2.50, 20, 'https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?w=200', '2026-05-01 07:00:00', '2026-05-01 12:00:00', 'active'),
-(3, 3, 'Cappuccino', 'Cappuccino con cocoa', 5.50, 2.75, 15, 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=200', '2026-05-01 08:00:00', '2026-05-01 13:00:00', 'active'),
-(3, 3, 'Jugo de Naranja', 'Jugo natural de naranja', 4.00, 2.00, 10, 'https://images.unsplash.com/photo-1600271884442-efd12d4f9666?w=200', '2026-05-01 07:00:00', '2026-05-01 11:00:00', 'active'),
-(3, 2, 'Croissant', 'Croissant de mantequilla', 3.50, 1.75, 12, 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200', '2026-05-01 08:00:00', '2026-05-01 14:00:00', 'active'),
-(3, 2, 'Muffin', 'Muffin de arándanos', 4.00, 2.00, 8, 'https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=200', '2026-05-01 09:00:00', '2026-05-01 15:00:00', 'active'),
-(4, 2, 'Torta de Chocolate', 'Torta de chocolate con cobertura', 25.00, 12.50, 3, 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200', '2026-05-01 14:00:00', '2026-05-01 18:00:00', 'active'),
-(4, 2, 'Pie de Manzana', 'Pie de manzana casero', 20.00, 10.00, 4, 'https://images.unsplash.com/photo-1568571780765-9276ac8b75a2?w=200', '2026-05-01 13:00:00', '2026-05-01 17:00:00', 'active'),
-(4, 2, 'Galletas', 'Galletas de chispas de chocolate', 5.00, 2.50, 20, 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=200', '2026-05-01 10:00:00', '2026-05-01 16:00:00', 'active'),
-(4, 8, 'Donas', 'Donas glaseadas', 3.50, 1.75, 15, 'https://images.unsplash.com/photo-1551024601-562963525cb8?w=200', '2026-05-01 11:00:00', '2026-05-01 17:00:00', 'active'),
-(5, 7, 'Arroz con Pollo', 'Arroz con pollo y ensalada', 10.00, 5.00, 8, 'https://images.unsplash.com/photo-1567620900862-93b6b94369aa?w=200', '2026-05-01 11:30:00', '2026-05-01 14:30:00', 'active'),
-(5, 7, 'Seco de Res', 'Seco de res con frejoles', 12.00, 6.00, 6, 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200', '2026-05-01 12:00:00', '2026-05-01 15:00:00', 'active'),
-(5, 7, 'Causa', 'Causa limeña rellena', 9.00, 4.50, 5, 'https://images.unsplash.com/photo-1626645738196-c2a72c7c8e38?w=200', '2026-05-01 12:30:00', '2026-05-01 16:00:00', 'active'),
-(5, 5, 'Fruta del día', 'Fruta variada picadita', 5.00, 2.50, 10, 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=200', '2026-05-01 09:00:00', '2026-05-01 14:00:00', 'active');
+(6, 'Sabor casero', 'Comida peruano tradicional', -12.023456, -77.056789, 4.3, 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400', '20123456793'),
+(8, 'Burger Street CBB', 'Las mejores hamburguesas de Cochabamba', -17.423083, -66.119639, 4.9, 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400', '30123456789'),
+(9, 'Pizza Nostra', 'Pizza artesanal a la leña', -17.424000, -66.120000, 4.7, 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400', '30123456790'),
+(10, 'Coffee Break', 'Café de especialidad y snacks', -17.422500, -66.118500, 4.8, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400', '30123456791');
 
 -- Tabla de ubicaciones
 INSERT INTO locations ("restaurant_id", name, latitude, longitude, description, phone) VALUES
@@ -64,7 +45,38 @@ INSERT INTO locations ("restaurant_id", name, latitude, longitude, description, 
 (3, 'Café Central', -12.038921, -77.028532, 'Plaza Mayor, Lima', '999-333-333'),
 (3, 'Café Central - Terraza', -12.038900, -77.028500, 'Plaza Mayor - Terraza', '999-333-334'),
 (4, 'Dulce Pan', -12.067891, -77.012345, 'Av. La Marina 321, Lima', '999-444-444'),
-(5, 'Sabor casero', -12.023456, -77.056789, 'Jr. Huamachuco 654, Lima', '999-555-555');
+(5, 'Sabor casero', -12.023456, -77.056789, 'Jr. Huamachuco 654, Lima', '999-555-555'),
+(6, 'Burger Street - Central', -17.423083, -66.119639, 'Calle Colombia 123, CBB', '444-111-111'),
+(7, 'Pizza Nostra - Plaza', -17.424000, -66.120000, 'Av. Ballivian 456, CBB', '444-222-222'),
+(8, 'Coffee Break - Recoleta', -17.422500, -66.118500, 'Av. Pando 789, CBB', '444-333-333');
+
+-- Tabla de productos excedentes
+INSERT INTO product_excedente ("commerceId", "locationId", "categoryId", title, description, original_price, discount_price, quantity, image_url, pickup_start, pickup_end, status) VALUES
+(1, 1, 1, 'Pan Francés', 'Pan francés recién horneado', 2.50, 1.25, 30, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200', '2026-05-01 08:00:00', '2026-05-01 14:00:00', 'active'),
+(1, 1, 1, 'Conchas', 'Conchas de chocolate y vainilla', 3.00, 1.50, 20, 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200', '2026-05-01 09:00:00', '2026-05-01 15:00:00', 'active'),
+(1, 1, 1, 'Bolillos', 'Bolillos integrales', 1.80, 0.90, 25, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200', '2026-05-01 07:00:00', '2026-05-01 13:00:00', 'active'),
+(1, 1, 2, 'Cupcakes', 'Cupcakes de vainilla con frosting', 4.50, 2.25, 15, 'https://images.unsplash.com/photo-1486427944544-d2c6128e4612?w=200', '2026-05-01 10:00:00', '2026-05-01 16:00:00', 'active'),
+(1, 1, 2, 'Brownies', 'Brownies de chocolate', 3.50, 1.75, 12, 'https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=200', '2026-05-01 11:00:00', '2026-05-01 17:00:00', 'active'),
+(2, 3, 7, 'Menú del Día', 'Pollo a la olla con arroz y ensalada', 12.00, 6.00, 10, 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200', '2026-05-01 12:00:00', '2026-05-01 15:00:00', 'active'),
+(2, 3, 7, 'Ceviche', 'Ceviche de pescado fresco', 15.00, 7.50, 8, 'https://images.unsplash.com/photo-1535399831218-d5bd36d1a6b3?w=200', '2026-05-01 11:00:00', '2026-05-01 14:00:00', 'active'),
+(2, 3, 7, 'Lomo Saltado', 'Lomo saltado con papas fritas', 14.00, 7.00, 6, 'https://images.unsplash.com/photo-1600891964092-4316c288032e?w=200', '2026-05-01 12:30:00', '2026-05-01 16:00:00', 'active'),
+(2, 3, 5, 'Ensalada Mixta', 'Ensalada con pollo y aderezo', 8.00, 4.00, 5, 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200', '2026-05-01 13:00:00', '2026-05-01 18:00:00', 'active'),
+(3, 4, 3, 'Café Latte', 'Café latte con leche', 5.00, 2.50, 20, 'https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?w=200', '2026-05-01 07:00:00', '2026-05-01 12:00:00', 'active'),
+(3, 4, 3, 'Cappuccino', 'Cappuccino con cocoa', 5.50, 2.75, 15, 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=200', '2026-05-01 08:00:00', '2026-05-01 13:00:00', 'active'),
+(3, 4, 3, 'Jugo de Naranja', 'Jugo natural de naranja', 4.00, 2.00, 10, 'https://images.unsplash.com/photo-1600271884442-efd12d4f9666?w=200', '2026-05-01 07:00:00', '2026-05-01 11:00:00', 'active'),
+(3, 4, 2, 'Croissant', 'Croissant de mantequilla', 3.50, 1.75, 12, 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200', '2026-05-01 08:00:00', '2026-05-01 14:00:00', 'active'),
+(3, 4, 2, 'Muffin', 'Muffin de arándanos', 4.00, 2.00, 8, 'https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=200', '2026-05-01 09:00:00', '2026-05-01 15:00:00', 'active'),
+(4, 6, 2, 'Torta de Chocolate', 'Torta de chocolate con cobertura', 25.00, 12.50, 3, 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=200', '2026-05-01 14:00:00', '2026-05-01 18:00:00', 'active'),
+(4, 6, 2, 'Pie de Manzana', 'Pie de manzana casero', 20.00, 10.00, 4, 'https://images.unsplash.com/photo-1568571780765-9276ac8b75a2?w=200', '2026-05-01 13:00:00', '2026-05-01 17:00:00', 'active'),
+(4, 6, 2, 'Galletas', 'Galletas de chispas de chocolate', 5.00, 2.50, 20, 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=200', '2026-05-01 10:00:00', '2026-05-01 16:00:00', 'active'),
+(4, 6, 8, 'Donas', 'Donas glaseadas', 3.50, 1.75, 15, 'https://images.unsplash.com/photo-1551024601-562963525cb8?w=200', '2026-05-01 11:00:00', '2026-05-01 17:00:00', 'active'),
+(5, 7, 7, 'Arroz con Pollo', 'Arroz con pollo y ensalada', 10.00, 5.00, 8, 'https://images.unsplash.com/photo-1567620900862-93b6b94369aa?w=200', '2026-05-01 11:30:00', '2026-05-01 14:30:00', 'active'),
+(5, 7, 7, 'Seco de Res', 'Seco de res con frejoles', 12.00, 6.00, 6, 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200', '2026-05-01 12:00:00', '2026-05-01 15:00:00', 'active'),
+(5, 7, 7, 'Causa', 'Causa limeña rellena', 9.00, 4.50, 5, 'https://images.unsplash.com/photo-1626645738196-c2a72c7c8e38?w=200', '2026-05-01 12:30:00', '2026-05-01 16:00:00', 'active'),
+(5, 7, 5, 'Fruta del día', 'Fruta variada picadita', 5.00, 2.50, 10, 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=200', '2026-05-01 09:00:00', '2026-05-01 14:00:00', 'active'),
+(6, 8, 4, 'Burger Master', 'Hamburguesa doble con queso', 45.00, 22.50, 5, 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200', '2026-05-01 19:00:00', '2026-05-01 22:00:00', 'active'),
+(7, 9, 7, 'Pizza Familiar', 'Pizza pepperoni familiar', 80.00, 40.00, 3, 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200', '2026-05-01 18:00:00', '2026-05-01 21:00:00', 'active'),
+(8, 10, 3, 'Combo Desayuno', 'Café + Croissant', 35.00, 17.50, 10, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200', '2026-05-01 07:00:00', '2026-05-01 10:30:00', 'active');
 
 -- Tabla de perfiles
 INSERT INTO profiles (user_id, full_name, phone, avatar_url) VALUES

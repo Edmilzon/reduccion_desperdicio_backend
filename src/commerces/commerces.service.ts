@@ -127,68 +127,99 @@ export class CommercesService {
     }
   }
 
-  async findByCoordinates(latitude: number, longitude: number, radiusKm = 3) {
-    // Encontrar todos los comercios y calcular la distancia (en km)
-    const commerces = await this.commerceRepository.find({
-      where: { latitude: Not(IsNull()), longitude: Not(IsNull()) },
-      relations: ['products'],
-    });
+  async findByCoordinates(latitude: number, longitude: number, radiusKm = 0) {
+    try {
+      const unlimited = radiusKm <= 0;
+      console.log(
+        `[findByCoordinates] lat: ${latitude}, lng: ${longitude}, radius: ${unlimited ? 'sin límite' : radiusKm}`,
+      );
+      
+      const locations = await this.locationRepository.find({
+        where: { latitude: Not(IsNull()), longitude: Not(IsNull()) },
+        relations: ['commerce', 'products'],
+      });
 
-    const commercesWithDistance = commerces
-      .map((commerce) => {
-        const now = new Date();
-        const activeProducts = (commerce.products ?? []).filter((product) => {
-          return (
-            product.status === ProductStatus.ACTIVE &&
-            Number(product.quantity) > 0 &&
-            new Date(product.pickupEnd) >= now
+      const now = new Date();
+      const locationsWithDistance = locations.map((location) => {
+        try {
+          if (!location.commerce) {
+            console.warn(`[findByCoordinates] Location ${location.id} has no commerce associated.`);
+            return null;
+          }
+
+          const activeProducts = (location.products ?? []).filter((product) => {
+            return (
+              product.status === ProductStatus.ACTIVE &&
+              Number(product.quantity) > 0 &&
+              product.pickupEnd && 
+              new Date(product.pickupEnd) >= now
+            );
+          });
+
+          const locLat = Number(location.latitude);
+          const locLng = Number(location.longitude);
+
+          if (isNaN(locLat) || isNaN(locLng)) {
+            return null;
+          }
+
+          const distance = this.calculateDistance(
+            latitude,
+            longitude,
+            locLat,
+            locLng,
           );
-        });
 
-        if (activeProducts.length === 0) {
+          if (!unlimited && distance > radiusKm) {
+            return null;
+          }
+
+          let pickupLimitDate = null;
+          if (activeProducts.length > 0) {
+            try {
+              pickupLimitDate = activeProducts
+                .map((product) => new Date(product.pickupEnd))
+                .filter(date => !isNaN(date.getTime()))
+                .sort((a, b) => a.getTime() - b.getTime())[0];
+            } catch (e) {
+              console.error(`[findByCoordinates] Error calculating pickupLimit for location ${location.id}`, e);
+            }
+          }
+          
+          return {
+            id: location.id,
+            restaurantId: location.commerce.id,
+            name: location.commerce.name,
+            branchName: location.name,
+            description: location.description || location.commerce.description,
+            latitude: locLat,
+            longitude: locLng,
+            rating: location.commerce.rating ? Number(location.commerce.rating) : null,
+            imageUrl: location.commerce.imageUrl,
+            distance: Number(distance.toFixed(1)),
+            availableOffers: activeProducts.length,
+            hasActiveOffers: activeProducts.length > 0,
+            pickupLimit: pickupLimitDate
+              ? pickupLimitDate.toLocaleTimeString('es-BO', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                })
+              : null,
+          };
+        } catch (innerError) {
+          console.error(`[findByCoordinates] Error processing location ${location.id}:`, innerError);
           return null;
         }
-
-        const distance = this.calculateDistance(
-          latitude,
-          longitude,
-          Number(commerce.latitude),
-          Number(commerce.longitude),
-        );
-
-        // FILTRO 3 KM ACTIVO
-        if (distance > radiusKm) {
-          return null;
-        }
-
-        const pickupLimitDate = activeProducts
-          .map((product) => new Date(product.pickupEnd))
-          .sort((a, b) => a.getTime() - b.getTime())[0];
-
-        return {
-          id: commerce.id,
-          name: commerce.name,
-          description: commerce.description,
-          latitude: Number(commerce.latitude),
-          longitude: Number(commerce.longitude),
-          rating: commerce.rating ? Number(commerce.rating) : null,
-          imageUrl: commerce.imageUrl,
-          distance: Number(distance.toFixed(1)),
-          availableOffers: activeProducts.length,
-          pickupLimit: pickupLimitDate
-            ? pickupLimitDate.toLocaleTimeString('es-BO', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-              })
-            : null,
-        };
       })
-      .filter((commerce) => commerce !== null)
-      .sort((a, b) => a.distance - b.distance);
+      .filter((loc) => loc !== null)
+      .sort((a, b) => a!.distance - b!.distance);
 
-    // Ordenar por distancia y retornar los más cercanos primero
-    return commercesWithDistance;
+      return locationsWithDistance;
+    } catch (error) {
+      console.error('[findByCoordinates] Error general:', error);
+      throw new BadRequestException('Error al buscar locales cercanos: ' + error.message);
+    }
   }
 
   // Método privado para calcular distancia usando Haversine (en kilómetros)

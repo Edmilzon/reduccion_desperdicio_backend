@@ -7,6 +7,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { Commerce } from '../../commerces/entities/commerce.entity';
+import { Location } from '../../commerces/entities/location.entity';
 import { Category } from './category.entity';
 
 export enum ProductStatus {
@@ -20,7 +21,7 @@ export class Product {
   @PrimaryGeneratedColumn('increment', { name: 'product_excedente_id' })
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   title: string;
 
   @Column({ nullable: true })
@@ -51,6 +52,12 @@ export class Product {
     onDelete: 'CASCADE',
   })
   commerce: Commerce;
+
+  @ManyToOne(() => Location, (location) => location.products, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  location: Location;
 
   @ManyToOne(() => Category, (category) => category.products, {
     onDelete: 'RESTRICT',

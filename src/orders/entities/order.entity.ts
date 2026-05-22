@@ -48,7 +48,7 @@ export class Order {
   @Column({ nullable: true })
   quantity: number;
 
-  @Column({ name: 'payment_method', default: PaymentMethod.CASH, nullable: true })
+  @Column({ name: 'payment_method', type: 'enum', enum: PaymentMethod, default: PaymentMethod.CASH, nullable: true })
   paymentMethod: PaymentMethod;
 
   @Column({
