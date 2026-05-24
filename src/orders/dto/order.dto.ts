@@ -21,5 +21,3 @@ export class CreateOrderDto {
   @IsOptional()
   paymentMethod?: PaymentMethod;
 }
-
-
