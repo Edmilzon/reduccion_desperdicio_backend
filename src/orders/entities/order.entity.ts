@@ -51,7 +51,13 @@ export class Order {
   @Column({ nullable: true })
   quantity: number;
 
-  @Column({ name: 'payment_method', type: 'enum', enum: PaymentMethod, default: PaymentMethod.CASH, nullable: true })
+  @Column({
+    name: 'payment_method',
+    type: 'enum',
+    enum: PaymentMethod,
+    default: PaymentMethod.CASH,
+    nullable: true,
+  })
   paymentMethod: PaymentMethod;
 
   @Column({
@@ -66,7 +72,13 @@ export class Order {
   })
   deliveryStatus: DeliveryStatus;
 
-  @Column({ name: 'total_price', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({
+    name: 'total_price',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
   totalPrice: number;
 
   @Column({ default: OrderStatus.CONFIRMED })

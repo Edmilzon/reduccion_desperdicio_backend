@@ -36,12 +36,9 @@ export class OrdersController {
   findMerchantOrders(@Request() req: AuthRequest) {
     return this.ordersService.findMerchantOrders(req.user);
   }
-  
+
   @Patch(':id/mark-paid-delivered')
-  markAsPaidAndDelivered(
-    @Param('id') id: string,
-    @Request() req: AuthRequest,
-  ) {
+  markAsPaidAndDelivered(@Param('id') id: string, @Request() req: AuthRequest) {
     return this.ordersService.markAsPaidAndDelivered(+id, req.user);
   }
 
@@ -53,5 +50,15 @@ export class OrdersController {
   @Post(':id/pay')
   payOrder(@Param('id') id: string, @Request() req: AuthRequest) {
     return this.ordersService.payOrder(+id, req.user);
+  }
+
+  @Patch(':id/deliver')
+  deliver(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.ordersService.deliver(+id, req.user);
+  }
+
+  @Patch(':id/mark-not-picked-up')
+  markAsNotPickedUp(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.ordersService.markAsNotPickedUp(+id, req.user);
   }
 }

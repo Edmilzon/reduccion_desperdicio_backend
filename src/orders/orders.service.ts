@@ -86,8 +86,8 @@ export class OrdersService {
       where: { id: savedOrder.id },
       relations: ['product', 'product.commerce', 'buyer'],
     });
-    
-    return this.mapOrderResponse(fullOrder!);
+
+    return this.mapOrderResponse(fullOrder);
   }
 
   async payOrder(orderId: number, user: User) {
@@ -182,76 +182,160 @@ export class OrdersService {
   }
 
   async findMerchantOrders(user: User) {
-  await this.markExpiredOrdersAsNotPickedUp();
+    await this.markExpiredOrdersAsNotPickedUp();
 
-  const orders = await this.orderRepository
-    .createQueryBuilder('order')
-    .leftJoinAndSelect('order.product', 'product')
-    .leftJoinAndSelect('product.commerce', 'commerce')
-    .leftJoinAndSelect('commerce.owner', 'owner')
-    .leftJoinAndSelect('order.buyer', 'buyer')
-    .where('owner.id = :ownerId', { ownerId: user.id })
-    .orderBy('order.createdAt', 'DESC')
-    .getMany();
+    const orders = await this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.product', 'product')
+      .leftJoinAndSelect('product.commerce', 'commerce')
+      .leftJoinAndSelect('commerce.owner', 'owner')
+      .leftJoinAndSelect('order.buyer', 'buyer')
+      .where('owner.id = :ownerId', { ownerId: user.id })
+      .orderBy('order.createdAt', 'DESC')
+      .getMany();
 
-  return orders.map((order) => this.mapOrderResponse(order));
-}
-
-async markAsPaidAndDelivered(orderId: number, user: User) {
-  const order = await this.orderRepository.findOne({
-    where: { id: orderId },
-    relations: ['product', 'product.commerce', 'product.commerce.owner', 'buyer'],
-  });
-  if (!order) {
-    throw new NotFoundException('Orden no encontrada');
+    return orders.map((order) => this.mapOrderResponse(order));
   }
-  if (order.product.commerce.owner.id !== user.id) {
-    throw new ForbiddenException(
-      'No tienes permiso para actualizar este pedido',
-    );
+
+  async markAsPaidAndDelivered(orderId: number, user: User) {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: [
+        'product',
+        'product.commerce',
+        'product.commerce.owner',
+        'buyer',
+      ],
+    });
+    if (!order) {
+      throw new NotFoundException('Orden no encontrada');
+    }
+    if (order.product.commerce.owner.id !== user.id) {
+      throw new ForbiddenException(
+        'No tienes permiso para actualizar este pedido',
+      );
+    }
+    if (order.paymentMethod !== PaymentMethod.CASH) {
+      throw new BadRequestException(
+        'Solo los pedidos con pago en sucursal pueden marcarse manualmente',
+      );
+    }
+    if (order.deliveryStatus === DeliveryStatus.NOT_PICKED_UP) {
+      throw new BadRequestException(
+        'No se puede entregar un pedido marcado como no recogido',
+      );
+    }
+    if (order.status === OrderStatus.CANCELLED) {
+      throw new BadRequestException('No se puede entregar una orden cancelada');
+    }
+    order.paymentStatus = PaymentStatus.PAID;
+    order.deliveryStatus = DeliveryStatus.DELIVERED;
+    order.paidAt = new Date();
+
+    const savedOrder = await this.orderRepository.save(order);
+    return this.mapOrderResponse(savedOrder);
   }
-  if (order.paymentMethod !== PaymentMethod.CASH) {
-    throw new BadRequestException(
-      'Solo los pedidos con pago en sucursal pueden marcarse manualmente',
-    );
+
+  async deliver(orderId: number, user: User) {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: [
+        'product',
+        'product.commerce',
+        'product.commerce.owner',
+        'buyer',
+      ],
+    });
+    if (!order) throw new NotFoundException('Orden no encontrada');
+    if (order.product.commerce.owner.id !== user.id) {
+      throw new ForbiddenException(
+        'No tienes permiso para actualizar este pedido',
+      );
+    }
+    if (order.status === OrderStatus.CANCELLED) {
+      throw new BadRequestException('No se puede entregar una orden cancelada');
+    }
+    if (order.deliveryStatus === DeliveryStatus.DELIVERED) {
+      throw new BadRequestException('El pedido ya fue entregado');
+    }
+    if (order.deliveryStatus === DeliveryStatus.NOT_PICKED_UP) {
+      throw new BadRequestException(
+        'No se puede entregar un pedido marcado como no recogido',
+      );
+    }
+    if (order.paymentMethod !== PaymentMethod.ONLINE) {
+      throw new BadRequestException(
+        'Este endpoint es solo para pedidos online. Use mark-paid-delivered para efectivo',
+      );
+    }
+    if (order.paymentStatus !== PaymentStatus.PAID) {
+      throw new BadRequestException(
+        'El pedido debe estar pagado antes de entregarlo',
+      );
+    }
+
+    order.deliveryStatus = DeliveryStatus.DELIVERED;
+    const savedOrder = await this.orderRepository.save(order);
+    return this.mapOrderResponse(savedOrder);
   }
-  if (order.deliveryStatus === DeliveryStatus.NOT_PICKED_UP) {
-    throw new BadRequestException(
-      'No se puede entregar un pedido marcado como no recogido',
-    );
-  }
-  if (order.status === OrderStatus.CANCELLED) {
-    throw new BadRequestException(
-      'No se puede entregar una orden cancelada',
-    );
-  }
-  order.paymentStatus = PaymentStatus.PAID;
-  order.deliveryStatus = DeliveryStatus.DELIVERED;
-  order.paidAt = new Date();
 
-  const savedOrder = await this.orderRepository.save(order);
-  return this.mapOrderResponse(savedOrder);
-}
+  async markAsNotPickedUp(orderId: number, user: User) {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: [
+        'product',
+        'product.commerce',
+        'product.commerce.owner',
+        'buyer',
+      ],
+    });
+    if (!order) throw new NotFoundException('Orden no encontrada');
+    if (order.product.commerce.owner.id !== user.id) {
+      throw new ForbiddenException(
+        'No tienes permiso para actualizar este pedido',
+      );
+    }
+    if (order.status === OrderStatus.CANCELLED) {
+      throw new BadRequestException('La orden ya fue cancelada');
+    }
+    if (order.deliveryStatus === DeliveryStatus.DELIVERED) {
+      throw new BadRequestException(
+        'No se puede marcar como no recogido un pedido ya entregado',
+      );
+    }
+    if (order.deliveryStatus === DeliveryStatus.NOT_PICKED_UP) {
+      throw new BadRequestException(
+        'El pedido ya fue marcado como no recogido',
+      );
+    }
 
-async markExpiredOrdersAsNotPickedUp() {
-  const now = new Date();
-
-  const orders = await this.orderRepository.find({
-    where: {
-      status: OrderStatus.CONFIRMED,
-      deliveryStatus: DeliveryStatus.PENDING,
-      paymentMethod: PaymentMethod.CASH,
-    },
-    relations: ['product'],
-  });
-
-  const expiredOrders = orders.filter((order) => {
-    return order.product?.pickupEnd && new Date(order.product.pickupEnd) < now;
-  });
-
-  for (const order of expiredOrders) {
     order.deliveryStatus = DeliveryStatus.NOT_PICKED_UP;
-    await this.orderRepository.save(order);
+    order.status = OrderStatus.CANCELLED;
+    const savedOrder = await this.orderRepository.save(order);
+    return this.mapOrderResponse(savedOrder);
   }
-}
+
+  async markExpiredOrdersAsNotPickedUp() {
+    const now = new Date();
+
+    const orders = await this.orderRepository.find({
+      where: {
+        status: OrderStatus.CONFIRMED,
+        deliveryStatus: DeliveryStatus.PENDING,
+        paymentMethod: PaymentMethod.CASH,
+      },
+      relations: ['product'],
+    });
+
+    const expiredOrders = orders.filter((order) => {
+      return (
+        order.product?.pickupEnd && new Date(order.product.pickupEnd) < now
+      );
+    });
+
+    for (const order of expiredOrders) {
+      order.deliveryStatus = DeliveryStatus.NOT_PICKED_UP;
+      await this.orderRepository.save(order);
+    }
+  }
 }

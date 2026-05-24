@@ -7,121 +7,68 @@ NestJS 11 + TypeScript backend for "Eco Bocado" — a food waste reduction platf
 | Command | Description |
 |---------|-------------|
 | `npm run start:dev` | Dev server with watch |
-| `npm run build` | Build (`nest build`, `deleteOutDir: true`) |
-| `npm run lint` | ESLint with `--fix` (flat config) |
+| `npm run build` | Build (uses `deleteOutDir: true`, so dist is wiped) |
+| `npm run lint` | ESLint flat config with `--fix` |
 | `npm run test` | Jest (rootDir: `src`, `*.spec.ts`) |
 | `npm run test -- <file>` | Single test file |
 | `npm run test:e2e` | Jest e2e (`test/jest-e2e.json`) |
+| `npm run test:cov` | Jest with coverage |
 | `npm run format` | Prettier `src/` + `test/` |
+| `npm run vercel-build` | Same as `build`, used by Vercel deploy |
 
-Run `npm run build` after changes to verify compilation.
+Run `npm run build` after any change to verify compilation.
 
 ## Environment
 
-Copy `.env.example` → `.env`. Required: `DATABASE_URL` (PostgreSQL), `JWT_SECRET` (app throws on startup if missing). Optional: `JWT_EXPIRATION` (default `24h`), `PORT` (default `3000`).
+`.env.example` → `.env`. Required: `DATABASE_URL` (PostgreSQL), `JWT_SECRET`. Optional: `JWT_EXPIRATION` (default `24h`), `PORT` (default `3000`, but `.env.example` uses `5000`).
 
 ## Schema
 
-`synchronize: false` — no auto-sync. Run `database/seed.sql` or `database/create_database.sql` manually to set up schema.
+`synchronize: false` — no auto-sync. Run `database/seed.sql` or `database/create_database.sql` manually.
 
 ## Key Conventions
 
-- **No strict types** — `strictNullChecks: false`, `noImplicitAny: false`. Expect `any`.
-- **DTO validation** — Global `ValidationPipe` with `whitelist`, `forbidNonWhitelisted`, `transform`.
-- **Prettier** — single quotes, trailing commas.
-- **Modules export `TypeOrmModule`** — `UsersModule`, `CommercesModule`, `ProductsModule`, `OrdersModule` each export `TypeOrmModule` + their service for cross-module access.
-- **Ownership checks** — Commerce owner can edit/delete own commerce and products. Stats accessible by owner or admin.
-- **Product DELETE** — Sets status to `SOLD_OUT`, does not remove the row.
-- **Order flow** — Create decrements product quantity (sold_out at 0). Cancel restores quantity + sets ACTIVE.
-- **Notifications** — Created automatically on order confirmation via `OrdersService.create`.
-- **E2E test expects `"Hello World!"`** — but app returns `"Test para Nestjs"`. Test will fail.
+- **No strict types** — `strictNullChecks: false`, `noImplicitAny: false`. Use `any` freely.
+- **Global ValidationPipe** — `whitelist`, `forbidNonWhitelisted`, `transform` in `main.ts`.
+- **Modules export `TypeOrmModule` + service** — UsersModule, CommercesModule, ProductsModule, OrdersModule all do this for cross-module access.
+- **Product DELETE** — Sets status `SOLD_OUT`, does not remove the row.
+- **Order flow** — Create decrements quantity (sets `SOLD_OUT` at 0, auto-creates notification). Cancel restores quantity + sets `ACTIVE`.
+- **Previously undocumented in AGENTS.md** — `GET /orders/merchant` (merchant sees their commerce orders) and `PATCH /orders/:id/mark-paid-delivered` (merchant marks cash orders paid+delivered) were missing from the old file. Both are in `api/orders.http`.
+- **DeliveryStatus enum** — Values: `pending`, `delivered`, `qr_code_validation`, `not_picked_up`. AGENTS.md previously omitted the last variant.
+- **FK naming drift** — Older entities (Profile, Location, Review, Notification) use `snake_case` FK columns; newer ones (Commerce → User `ownerId`, Product → Commerce/Location/Category, Order → User/Product) use `camelCase`. Both patterns coexist.
+- **E2E test expects `"Hello World!"`** — but `src/app.service.ts` returns `"Test para Nestjs"`. E2E will fail.
 - **Base branch is `develop`** — do not commit to `main` directly.
 
 ## Auth
 
-JWT with Passport. `POST /auth/register` (client), `POST /auth/register-commerce` (merchant), `POST /auth/login`, `GET /auth/me` (protected), `POST /auth/logout` (protected).
+JWT via Passport. Payload: `{ sub, email, role }`. Strategy validates user exists in DB by `payload.sub`. Guard: `JwtAuthGuard`.
 
-JWT payload: `{ sub, email, role }`. Strategy validates user exists in DB via `User` repository. Guard: `JwtAuthGuard`.
+| Endpoint | Auth | Notes |
+|----------|------|-------|
+| `POST /auth/register` | Public | role defaults to CLIENT |
+| `POST /auth/register-commerce` | Public | Creates user + commerce |
+| `POST /auth/login` | Public | Returns JWT |
+| `GET /auth/me` | JWT | Returns profile (with commerce data for MERCHANT) |
+| `POST /auth/logout` | JWT | Client-side token removal only |
 
 ## Source Layout
 
 ```
 src/
-├── main.ts                          # ValidationPipe, listen 0.0.0.0
-├── app.module.ts                    # ConfigModule (global), TypeOrmModule async
-├── app.controller.ts                # GET / → "Test para Nestjs"
-├── auth/                            # auth.controller.ts, auth.service.ts, guards/, strategies/
-├── users/                           # Entities only (no controller)
-│   └── entities/                    # User, Profile, Review, Notification
-├── commerces/                       # commerces.controller.ts, restaurants.controller.ts
-│   └── entities/                    # Commerce (table: restaurants), Location
-├── products/                        # products.controller.ts, products.service.ts
-│   └── entities/                    # Product (table: product_excedente), Category
-└── orders/                          # orders.controller.ts, orders.service.ts
-    └── entities/                    # Order
+├── main.ts                    # ValidationPipe, listen 0.0.0.0:{PORT}
+├── app.module.ts              # ConfigModule (global), TypeOrm async
+├── app.controller.ts          # GET / → "Test para Nestjs"
+├── auth/                      # auth.controller, auth.service, guards/, strategies/
+├── users/                     # Entities only: User, Profile, Review, Notification
+├── commerces/                 # commerces.controller, restaurants.controller
+├── products/                  # products.controller, products.service
+└── orders/                    # orders.controller, orders.service
 ```
 
-## Entities
-
-### users/
-- **User** (`users`) — id (user_id), email, password (select:false), role (enum: client/merchant/admin), resetToken, timestamps. Relations: comercios, profile, reviews, notifications.
-- **Profile** (`profiles`) — id, userId (unique), fullName, phone, avatarUrl. Relation to User.
-- **Review** (`reviews`) — id, stars, comment, timestamps. Relations: order, client (User), commerce.
-- **Notification** (`notifications`) — id, userId, title, content, type (enum: alert/reservation_confirmed), isRead. Relation to User.
-
-### commerces/
-- **Commerce** (`restaurants`) — id (restaurant_id), owner (User), name, description, latitude, longitude, rating, imageUrl, nit, timestamps.
-- **Location** (`locations`) — id, restaurantId, name, latitude, longitude, description, phone.
-
-### products/
-- **Product** (`product_excedente`) — id (product_excedente_id), title, description, originalPrice, price (column: discount_price), quantity, imageUrl, pickupStart, pickupEnd, status (enum: active/sold_out/expired), timestamps. Relations: commerce, category.
-- **Category** (`categories`) — id, name, slug (unique).
-
-### orders/
-- **Order** (`orders`) — id (order_id), buyer (User), product (Product), quantity, paymentMethod (enum: cash/online), paymentStatus (pending/paid/rejected), deliveryStatus (pending/delivered/qr_code_validation), totalPrice, status (confirmed/cancelled), reservationCode, paidAt, receiptUrl, timestamps. Relation: review.
-
-## Endpoints
-
-### Auth (`/auth`)
-- `POST /auth/register` — name, email, password, role? (optional, defaults to CLIENT)
-- `POST /auth/register-commerce` — ownerName, email, password, commerceName, description?, latitude?, longitude?, nit?
-- `POST /auth/login` — email, password → JWT
-- `GET /auth/me` — protected, returns profile with commerce data for MERCHANT
-- `POST /auth/logout` — protected, client-side token removal only
-
-### Commerces (`/commerces`, `/restaurants`)
-- `GET /commerces` — List all
-- `GET /commerces/list/all` — List id + name only
-- `GET /commerces/nearby?lat=&lng=&radius=` — Haversine distance filter
-- `GET /commerces/by-address?address=&radius=` — Nominatim geocoding then distance
-- `GET /commerces/:id` — Get one
-- `GET /commerces/:id/products` — Active products by commerce
-- `POST /commerces` — Protected, create
-- `PATCH /commerces/:id` — Protected, owner only
-- `DELETE /commerces/:id` — Protected, owner only
-- `GET /restaurants/:id/detail` — Detail with active offers
-
-### Products (`/products`)
-- `GET /products` — List active (query: categoryId?, commerceId?)
-- `GET /products/all` — List with category
-- `GET /products/categories` — All categories
-- `GET /products/search?q=` — ILIKE search on title, description, commerce name
-- `GET /products/category/:categoryId` — By category (query: commerceId?)
-- `GET /products/commerce/:commerceId` — By commerce (query: status?, categoryId?). Enriches with `isNearExpiry`.
-- `GET /products/commerce/:commerceId/stats` — Protected (owner/admin): activeOffers, todayOffers, todayOrders, todaySales, totalUnitsSold, nearExpiryOffers[], nearExpiryCount
-- `GET /products/:id` — Get one
-- `POST /products` — Protected, create
-- `PATCH /products/:id` — Protected, owner only
-- `DELETE /products/:id` — Protected, owner only, sets SOLD_OUT
-
-### Orders (`/orders`) — All protected (class-level guard)
-- `POST /orders` — Create order (decrements quantity, sets SOLD_OUT if 0, creates notification)
-- `GET /orders/my-orders` — User's orders, newest first
-- `PATCH /orders/:id/cancel` — Cancel (restores quantity, sets ACTIVE)
-- `POST /orders/:id/pay` — Pay online order (rejects cash or already-paid orders)
+Table mappings: `User` → `users`, `Profile` → `profiles`, `Commerce` → `restaurants`, `Product` → `product_excedente`, `Order` → `orders`.
 
 ## Resources
 
-- `api/*.http` — REST client files covering all endpoints with flows
-- `database/` — SQL scripts (`create_database.sql`, `seed.sql`)
+- `api/*.http` — REST client files covering all endpoints
+- `database/` — SQL scripts
 - `AUTH_FLOW.md` — Auth flow documentation

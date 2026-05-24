@@ -30,7 +30,16 @@
 #       → El frontend llama a POST /orders/:id/pay
 #         → Backend marca paymentStatus = "paid", genera receiptUrl.
 #
-# 3. CANCELAR
+# 3. ENTREGAR (pedido online)
+#    PATCH /orders/:id/deliver
+#    → merchant marca como entregado un pedido online ya pagado.
+#
+# 4. NO RECOGIDO
+#    PATCH /orders/:id/mark-not-picked-up
+#    → merchant marca pedido como no recogido (no restaura stock).
+#    → Frontend Timer lo llama automáticamente al expirar pickupEnd.
+#
+# 5. CANCELAR (cliente)
 #    PATCH /orders/:id/cancel
 #    → Restaura la cantidad al stock del producto.
 #    → Si el producto estaba SOLD_OUT, lo vuelve a ACTIVE.
@@ -94,6 +103,37 @@ Content-Type: application/json
 #   400 → ya pagada
 #   400 → orden cancelada
 #   404 → orden no encontrada
+
+### Marcar como entregado (solo merchant, para pedidos online ya pagados)
+PATCH {{baseURL}}/orders/{{orderId}}/deliver
+Authorization: Bearer {{token}}
+# 200 → { ...order, deliveryStatus: "delivered" }
+# Lógica:
+#   - Solo cambia deliveryStatus → "delivered" (NO cambia paymentStatus)
+#   - Sirve para pedidos online que ya tienen paymentStatus = "paid"
+# Errores:
+#   401 → no autenticado
+#   403 → no eres el merchant del comercio asociado
+#   400 → pedido no está pagado (paymentStatus != "paid")
+#   400 → pedido ya entregado (deliveryStatus == "delivered")
+#   400 → pedido cancelado o no recogido
+#   404 → pedido no encontrado
+
+### Marcar como no recogido (solo merchant, auto-expirado)
+PATCH {{baseURL}}/orders/{{orderId}}/mark-not-picked-up
+Authorization: Bearer {{token}}
+# 200 → { ...order, deliveryStatus: "not_picked_up", status: "cancelled" }
+# Lógica:
+#   - Cambia deliveryStatus → "not_picked_up"
+#   - Cambia status → "cancelled"
+#   - NO restaura stock (la comida fue preparada/reservada)
+#   - Frontend Timer llama automáticamente cuando pickupEnd expira
+# Errores:
+#   401 → no autenticado
+#   403 → no eres el merchant del comercio asociado
+#   400 → pedido ya entregado o ya no recogido
+#   400 → pedido cancelado
+#   404 → pedido no encontrado
 
 ### Cancelar pedido (restaura stock, si estaba SOLD_OUT vuelve a ACTIVE)
 PATCH {{baseURL}}/orders/{{orderId}}/cancel
