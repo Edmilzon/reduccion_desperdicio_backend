@@ -11,6 +11,7 @@ import { Commerce } from '../../commerces/entities/commerce.entity';
 import { Profile } from './profile.entity';
 import { Review } from './review.entity';
 import { Notification } from './notification.entity';
+import { PasswordHistory } from './password-history.entity';
 
 export { Profile } from './profile.entity';
 
@@ -38,6 +39,18 @@ export class User {
 
   @Column({ name: 'reset_token', nullable: true })
   resetToken: string;
+
+  @Column({ name: 'reset_password_expires', type: 'timestamp', nullable: true })
+  resetPasswordExpires: Date;
+
+  @Column({ name: 'reset_password_attempts', default: 0 })
+  resetPasswordAttempts: number;
+
+  @Column({ name: 'token_version', default: 0 })
+  tokenVersion: number;
+
+  @OneToMany(() => PasswordHistory, (history) => history.user)
+  passwordHistory: PasswordHistory[];
 
   @OneToMany(() => Commerce, (commerce) => commerce.owner)
   comercios: Commerce[];
