@@ -9,7 +9,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/order.dto';
+import { CreateOrderDto, ValidatePickupDto } from './dto/order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
 
@@ -36,6 +36,17 @@ export class OrdersController {
   findMerchantOrders(@Request() req: AuthRequest) {
     return this.ordersService.findMerchantOrders(req.user);
   }
+
+  @Post('validate-pickup')
+validatePickup(
+  @Body() validatePickupDto: ValidatePickupDto,
+  @Request() req: AuthRequest,
+) {
+  return this.ordersService.validatePickup(
+    validatePickupDto.reservationCode,
+    req.user,
+  );
+}
 
   @Patch(':id/mark-paid-delivered')
   markAsPaidAndDelivered(@Param('id') id: string, @Request() req: AuthRequest) {

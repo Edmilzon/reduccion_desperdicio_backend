@@ -21,3 +21,9 @@ export class CreateOrderDto {
   @IsOptional()
   paymentMethod?: PaymentMethod;
 }
+
+export class ValidatePickupDto {
+  @IsString({ message: 'El código de reserva debe ser texto' })
+  @IsNotEmpty({ message: 'El código de reserva es obligatorio' })
+  reservationCode: string;
+}

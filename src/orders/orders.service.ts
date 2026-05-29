@@ -154,6 +154,7 @@ export class OrdersService {
       deliveryStatus: order.deliveryStatus,
       status: order.status,
       paidAt: order.paidAt,
+      deliveredAt: order.deliveredAt,
       createdAt: order.createdAt,
       product: order.product
         ? {
@@ -228,9 +229,11 @@ export class OrdersService {
     if (order.status === OrderStatus.CANCELLED) {
       throw new BadRequestException('No se puede entregar una orden cancelada');
     }
+    const now = new Date();
     order.paymentStatus = PaymentStatus.PAID;
     order.deliveryStatus = DeliveryStatus.DELIVERED;
-    order.paidAt = new Date();
+    order.paidAt = now;
+    order.deliveredAt = now;
 
     const savedOrder = await this.orderRepository.save(order);
     return this.mapOrderResponse(savedOrder);
@@ -275,9 +278,65 @@ export class OrdersService {
     }
 
     order.deliveryStatus = DeliveryStatus.DELIVERED;
+    order.deliveredAt = new Date();
     const savedOrder = await this.orderRepository.save(order);
     return this.mapOrderResponse(savedOrder);
   }
+
+  async validatePickup(reservationCode: string, user: User) {
+  const normalizedCode = reservationCode.trim();
+
+  if (!normalizedCode) {
+    throw new BadRequestException('Código inválido');
+  }
+
+  const order = await this.orderRepository.findOne({
+    where: { reservationCode: normalizedCode },
+    relations: [
+      'product',
+      'product.commerce',
+      'product.commerce.owner',
+      'buyer',
+    ],
+  });
+
+  if (!order) {
+    throw new NotFoundException('Código inválido');
+  }
+
+  if (order.product.commerce.owner.id !== user.id) {
+    throw new NotFoundException('Código inválido');
+  }
+
+  if (order.status === OrderStatus.CANCELLED) {
+    throw new BadRequestException('Pedido cancelado');
+  }
+
+  if (order.deliveryStatus === DeliveryStatus.DELIVERED) {
+    throw new BadRequestException('Código ya utilizado');
+  }
+
+  if (order.deliveryStatus === DeliveryStatus.NOT_PICKED_UP) {
+    throw new BadRequestException('Código ya utilizado');
+  }
+
+  const now = new Date();
+
+  order.deliveryStatus = DeliveryStatus.DELIVERED;
+  order.deliveredAt = now;
+
+  if (order.paymentMethod === PaymentMethod.CASH) {
+    order.paymentStatus = PaymentStatus.PAID;
+    order.paidAt = now;
+  }
+
+  const savedOrder = await this.orderRepository.save(order);
+
+  return {
+    message: 'Entrega confirmada',
+    order: this.mapOrderResponse(savedOrder),
+  };
+}
 
   async markAsNotPickedUp(orderId: number, user: User) {
     const order = await this.orderRepository.findOne({
