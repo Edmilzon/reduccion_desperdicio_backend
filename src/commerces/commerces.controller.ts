@@ -49,6 +49,7 @@ export class CommercesController {
     @Query('lat') lat: string,
     @Query('lng') lng: string,
     @Query('radius') radius: string,
+    @Query('category') category?: string,
   ) {
     if (!lat || !lng) {
       throw new BadRequestException(
@@ -60,6 +61,7 @@ export class CommercesController {
       parseFloat(lat),
       parseFloat(lng),
       radiusKm,
+      category,
     );
   }
 

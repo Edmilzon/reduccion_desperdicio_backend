@@ -9,6 +9,7 @@ import { Repository, Not, IsNull } from 'typeorm';
 import { Commerce } from './entities/commerce.entity';
 import { Location } from './entities/location.entity';
 import { Product, ProductStatus } from '../products/entities/product.entity';
+import { Category } from '../products/entities/category.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateCommerceDto, UpdateCommerceDto } from './dto/commerce.dto';
 import {
@@ -25,6 +26,8 @@ export class CommercesService {
     private readonly locationRepository: Repository<Location>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
   ) {}
 
   async create(createCommerceDto: CreateCommerceDto, user: User) {
@@ -127,16 +130,21 @@ export class CommercesService {
     }
   }
 
-  async findByCoordinates(latitude: number, longitude: number, radiusKm = 0) {
+  async findByCoordinates(
+    latitude: number,
+    longitude: number,
+    radiusKm = 0,
+    category?: string,
+  ) {
     try {
       const unlimited = radiusKm <= 0;
       console.log(
-        `[findByCoordinates] lat: ${latitude}, lng: ${longitude}, radius: ${unlimited ? 'sin límite' : radiusKm}`,
+        `[findByCoordinates] lat: ${latitude}, lng: ${longitude}, radius: ${unlimited ? 'sin límite' : radiusKm}, category: ${category ?? 'todas'}`,
       );
 
       const locations = await this.locationRepository.find({
         where: { latitude: Not(IsNull()), longitude: Not(IsNull()) },
-        relations: ['commerce', 'products'],
+        relations: ['commerce', 'products', 'products.category'],
       });
 
       const now = new Date();
@@ -152,14 +160,25 @@ export class CommercesService {
 
             const activeProducts = (location.products ?? []).filter(
               (product) => {
+                const matchesCategory =
+                  !category ||
+                  (product.category &&
+                    (product.category.slug === category ||
+                      String(product.category.id) === category));
+
                 return (
                   product.status === ProductStatus.ACTIVE &&
                   Number(product.quantity) > 0 &&
                   product.pickupEnd &&
-                  new Date(product.pickupEnd) >= now
+                  new Date(product.pickupEnd) >= now &&
+                  matchesCategory
                 );
               },
             );
+
+            if (category && activeProducts.length === 0) {
+              return null;
+            }
 
             const locLat = Number(location.latitude);
             const locLng = Number(location.longitude);
@@ -298,5 +317,29 @@ export class CommercesService {
       isActive: true,
       offers,
     };
+  }
+
+  async findActiveCategories() {
+    const now = new Date();
+    const activeProducts = await this.productRepository.find({
+      where: {
+        status: ProductStatus.ACTIVE,
+      },
+      relations: ['category'],
+    });
+
+    const activeCategoriesMap = new Map<number, Category>();
+    for (const product of activeProducts) {
+      if (
+        product.category &&
+        Number(product.quantity) > 0 &&
+        product.pickupEnd &&
+        new Date(product.pickupEnd) >= now
+      ) {
+        activeCategoriesMap.set(product.category.id, product.category);
+      }
+    }
+
+    return Array.from(activeCategoriesMap.values());
   }
 }
