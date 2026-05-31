@@ -1,0 +1,35 @@
+### HU-20 Login restaurante
+POST http://localhost:5000/auth/login
+Content-Type: application/json
+
+{
+  "email": "CORREO_RESTAURANTE",
+  "password": "PASSWORD_RESTAURANTE"
+}
+
+### HU-20 Validar recogida
+POST http://localhost:5000/orders/validate-pickup
+Content-Type: application/json
+Authorization: Bearer TOKEN_RESTAURANTE
+
+{
+  "reservationCode": "CODIGO_REAL_DE_RESERVA"
+}
+
+### HU-20 Código inválido
+POST http://localhost:5000/orders/validate-pickup
+Content-Type: application/json
+Authorization: Bearer TOKEN_RESTAURANTE
+
+{
+  "reservationCode": "CODIGO-NO-EXISTE"
+}
+
+### HU-20 Código ya utilizado
+POST http://localhost:5000/orders/validate-pickup
+Content-Type: application/json
+Authorization: Bearer TOKEN_RESTAURANTE
+
+{
+  "reservationCode": "CODIGO_YA_VALIDADO"
+}

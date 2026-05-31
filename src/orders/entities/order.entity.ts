@@ -90,6 +90,9 @@ export class Order {
   @Column({ name: 'paid_at', nullable: true })
   paidAt: Date;
 
+  @Column({ name: 'delivered_at', nullable: true })
+  deliveredAt: Date;
+
   @Column({ name: 'receipt_url', nullable: true })
   receiptUrl: string;
 
