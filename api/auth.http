@@ -1,6 +1,5 @@
 @baseURL = http://localhost:5000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjE4LCJlbWFpbCI6InRlc3RjbGllbnRlXzE3Nzk0ODg1MTVAdGVzdC5jb20iLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzc5NDg4NTE3LCJleHAiOjE3Nzk1NzQ5MTd9.ANFZFkVe5UIM5Ulk_crd14q3ydTLHlsGvwYoSTdwKr0
-@clientEmail = cliente@ejemplo.com
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjE3LCJlbWFpbCI6ImNsaWVudGVAZWplbXBsby5jb20iLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzgwMjQzNTQ5LCJleHAiOjE3ODAzMjk5NDl9.R6-AegrQfTZBm11gv3Kfy_Dr4OBKvSZrtp-EjKM9DHU
 @clientPassword = password123
 
 # ────────────────────────────────────────────

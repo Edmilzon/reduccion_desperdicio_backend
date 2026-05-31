@@ -102,7 +102,7 @@ Content-Type: application/json
 ### Eliminar comercio (solo owner, eliminación física en cascada)
 DELETE {{baseURL}}/commerces/{{commerceId}}
 Authorization: Bearer {{token}}
-# 200 → { message: "Comercio eliminado correctamente" } (el objeto eliminado)
+# 200 → raw commerce entity eliminado (NO es un mensaje)
 # Errores:
 #   401 → no autenticado
 #   403 → no eres el owner
