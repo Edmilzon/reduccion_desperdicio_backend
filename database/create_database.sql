@@ -9,6 +9,9 @@ CREATE TABLE users (
     password VARCHAR(255),
     role VARCHAR(20) NOT NULL DEFAULT 'client' CHECK (role IN ('client', 'merchant', 'admin')),
     reset_token VARCHAR(255),
+    reset_password_expires TIMESTAMP,
+    reset_password_attempts INTEGER NOT NULL DEFAULT 0,
+    token_version INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -81,6 +84,7 @@ CREATE TABLE orders (
     status VARCHAR(20) DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'cancelled')),
     reservation_code VARCHAR(255) UNIQUE,
     paid_at TIMESTAMP,
+    delivered_at TIMESTAMP,
     receipt_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -117,6 +121,14 @@ CREATE TABLE notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 10. Historial de contraseñas
+CREATE TABLE password_history (
+    id SERIAL PRIMARY KEY,
+    "passwordHash" VARCHAR(255) NOT NULL,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INT REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 -- Índices
 CREATE INDEX idx_restaurants_ownerId ON restaurants("ownerId");
 CREATE INDEX idx_product_excedente_commerceId ON product_excedente("commerceId");
@@ -130,3 +142,4 @@ CREATE INDEX idx_reviews_client_id ON reviews(client_id);
 CREATE INDEX idx_reviews_restaurant_id ON reviews(restaurant_id);
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX idx_profiles_user_id ON profiles(user_id);
+CREATE INDEX idx_password_history_user_id ON password_history(user_id);
