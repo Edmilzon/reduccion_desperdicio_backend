@@ -63,6 +63,7 @@ export class ProductsService {
     return this.productRepository.find({
       where,
       relations: ['commerce', 'category'],
+      order: { createdAt: 'DESC' },
     });
   }
 
