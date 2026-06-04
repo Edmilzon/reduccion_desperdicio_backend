@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { CommercesService } from '../commerces/commerces.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
@@ -17,7 +16,6 @@ import { PasswordHistory } from '../users/entities/password-history.entity';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { DataSource } from 'typeorm';
-import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +24,6 @@ export class AuthService {
     private readonly commercesService: CommercesService,
     private readonly jwtService: JwtService,
     private readonly dataSource: DataSource,
-    private readonly mailerService: MailerService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -182,65 +179,25 @@ export class AuthService {
       where: { email: forgotPasswordDto.email },
     });
 
-    if (user) {
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      const hash = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-      user.resetToken = hash;
-      user.resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 mins
-      user.resetPasswordAttempts = 0;
-
-      await userRepo.save(user);
-
-      // Enviar correo (Fire and forget, no usamos await para no bloquear la respuesta)
-      this.mailerService
-        .sendMail({
-          to: user.email,
-          subject: 'Recuperación de contraseña - Eco Bocado',
-          template: './forgot-password',
-          context: { token: resetToken },
-        })
-        .catch(console.error);
+    if (!user) {
+      throw new BadRequestException('No existe una cuenta con ese correo.');
     }
 
-    // Respuesta Anti-Enumeración
-    return {
-      message:
-        'Si el correo está registrado, se han enviado las instrucciones para recuperar tu contraseña.',
-    };
+    return { message: 'Correo verificado. Puedes cambiar tu contraseña.' };
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
-    const { email, token, newPassword } = resetPasswordDto;
+    const { email, newPassword } = resetPasswordDto;
     const userRepo = this.dataSource.getRepository(User);
-    const historyRepo = this.dataSource.getRepository(PasswordHistory);
 
     const user = await userRepo
       .createQueryBuilder('user')
       .addSelect('user.password')
-      .leftJoinAndSelect('user.passwordHistory', 'passwordHistory')
       .where('user.email = :email', { email })
       .getOne();
 
-    if (!user || !user.resetToken || !user.resetPasswordExpires) {
-      throw new BadRequestException('Token inválido o expirado.');
-    }
-
-    if (new Date() > user.resetPasswordExpires) {
-      throw new BadRequestException('Token inválido o expirado.');
-    }
-
-    const hashedIncomingToken = crypto.createHash('sha256').update(token).digest('hex');
-
-    if (user.resetToken !== hashedIncomingToken) {
-      user.resetPasswordAttempts += 1;
-      if (user.resetPasswordAttempts >= 3) {
-        user.resetToken = null as any;
-        user.resetPasswordExpires = null as any;
-        user.resetPasswordAttempts = 0;
-      }
-      await userRepo.save(user);
-      throw new BadRequestException('Token inválido o expirado.');
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado.');
     }
 
     const isSameAsCurrent = await bcrypt.compare(newPassword, user.password);
@@ -248,38 +205,10 @@ export class AuthService {
       throw new BadRequestException('La nueva contraseña no puede ser igual a la actual.');
     }
 
-    if (user.passwordHistory && user.passwordHistory.length > 0) {
-      for (const history of user.passwordHistory) {
-        const isMatch = await bcrypt.compare(newPassword, history.passwordHash);
-        if (isMatch) {
-          throw new BadRequestException(
-            'No puedes repetir una contraseña utilizada anteriormente.',
-          );
-        }
-      }
-    }
-
-    const newHistory = historyRepo.create({
-      passwordHash: user.password,
-      user: user,
-    });
-    await historyRepo.save(newHistory);
-
     user.password = await bcrypt.hash(newPassword, 10);
-    user.resetToken = null as any;
-    user.resetPasswordExpires = null as any;
-    user.resetPasswordAttempts = 0;
     user.tokenVersion += 1;
 
     await userRepo.save(user);
-
-    this.mailerService
-      .sendMail({
-        to: user.email,
-        subject: 'Contraseña actualizada - Eco Bocado',
-        template: './reset-confirmation',
-      })
-      .catch(console.error);
 
     return { message: 'Contraseña actualizada correctamente.' };
   }

@@ -1,0 +1,7 @@
+DATABASE_URL=postgresql://neondb_owner:npg_YTJ0DsB9ZFGE@ep-muddy-bread-a21balh3-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+PORT=5000
+JWT_SECRET=palbra_clave
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=andresjhoel27@gmail.com
+SMTP_PASS=emrm kcly kqfx bwvh
